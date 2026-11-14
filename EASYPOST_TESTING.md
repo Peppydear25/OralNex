@@ -1,0 +1,12 @@
+# EasyPost checkout testing
+
+This stage quotes USPS, UPS, and FedEx rates through EasyPost and re-quotes the selected service before Stripe creates a payment session. It does **not** buy labels or process EasyPost tracking webhooks yet. Fulfill test orders manually; do not enable live checkout until the label/tracking workflow or an approved manual-fulfillment process is in place.
+
+1. Create an EasyPost account and copy its **Test API key** from the dashboard. Keep it server-side as `EASYPOST_API_KEY` in `.env.local`; never use `NEXT_PUBLIC_` for it. Add the exact ship-from address via `EASYPOST_ORIGIN_NAME`, `EASYPOST_ORIGIN_STREET`, `EASYPOST_ORIGIN_CITY`, `EASYPOST_ORIGIN_STATE`, and `EASYPOST_ORIGIN_ZIP`. `EASYPOST_ORIGIN_STREET2` is optional.
+2. In EasyPost's dashboard, confirm the test carrier accounts you want to rate. USPS is available by default on many accounts; UPS/FedEx must be enabled before their rates appear. Test-mode discounts may differ from production rates.
+3. Use Stripe **test** keys (`STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`) and a test webhook signing secret (`STRIPE_WEBHOOK_SECRET`). Set `SITE_URL` to the exact application origin. Leave `STRIPE_AUTOMATIC_TAX_ENABLED=false` until Stripe Tax is configured and tested.
+4. Confirm each product option has measured, verified shipping packages in the admin editor. A missing parcel or an order needing over 20 physical parcels is refused rather than estimated. Do not enter retail-box dimensions as outer-parcel dimensions unless that is the sealed parcel handed to the carrier.
+5. Set `CHECKOUT_ENABLED=true` **only in a test environment**. Restart Next.js. Add one box to the cart, enter a US delivery address, select a returned shipping service, and pay with a Stripe test card. Then repeat with several boxes, a full carton, multiple cartons, and another destination. Compare every quoted package against its measured packed weight and outside dimensions.
+6. Confirm Stripe's charged shipping amount and the saved order match the server-returned carrier rate. Verify the signed Stripe webhook records the order once, including on retries. Fulfill the order and purchase any needed label outside OralNex during this stage.
+
+To expose a local Stripe webhook, use `stripe listen --forward-to localhost:3000/api/stripe/webhook`; copy the signing secret it prints into `.env.local`. EasyPost test-rate requests do not require a public URL. Never put live EasyPost or Stripe keys into a local shared screenshot or commit.
