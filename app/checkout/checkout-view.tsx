@@ -127,7 +127,6 @@ export function CheckoutView({
           tone: "error",
           title: "Saved address limit reached",
           message: ADDRESS_LIMIT_MESSAGE,
-          actionLabel: "Review address",
         });
         return;
       }
@@ -142,7 +141,6 @@ export function CheckoutView({
             tone: "error",
             title: "Your address could not be saved",
             message: "Please try saving your address again. No payment was started.",
-            actionLabel: "Review address",
           });
           return;
         }
@@ -155,7 +153,6 @@ export function CheckoutView({
               saved.error?.message === ADDRESS_LIMIT_MESSAGE
                 ? ADDRESS_LIMIT_MESSAGE
                 : "Review the shipping address and try again before continuing.",
-            actionLabel: "Review address",
           });
           return;
         }
@@ -173,10 +170,8 @@ export function CheckoutView({
       stopSubmitting();
       setResult({
         tone: "error",
-        statusLabel: "Checkout unavailable",
         title: "Online checkout is temporarily unavailable",
         message: "No order or payment was created. Please try again later.",
-        actionLabel: "Return to checkout",
       });
       return;
     }
@@ -267,12 +262,10 @@ export function CheckoutView({
       const requestingRates = !shippingQuotes;
       setResult({
         tone: "error",
-        statusLabel: requestingRates ? "Shipping rates unavailable" : "Payment not started",
         title: requestingRates
           ? "We could not check shipping rates"
           : "We could not open the payment form",
         message: error instanceof CheckoutDisplayError ? error.message : checkoutErrorMessage(503),
-        actionLabel: "Return to checkout",
       });
       stopSubmitting();
     }

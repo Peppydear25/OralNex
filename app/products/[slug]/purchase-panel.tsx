@@ -11,7 +11,6 @@ import {
   isOptionValueAvailable,
   optionSelectionKey,
 } from "../../lib/product-options";
-import { productUnits } from "../../lib/packaging";
 
 const currencyFormatter = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
 
@@ -65,10 +64,7 @@ export function PurchasePanel({ product }: { product: Product }) {
       return;
     }
     cart.add(product.id, quantityToAdd, true, selection);
-    setNotice({
-      message: `${quantityToAdd} ${productUnits(product, quantityToAdd)} added to your cart.`,
-      tone: "success",
-    });
+    setNotice(null);
   };
   return (
     <div className="grid gap-6 sm:gap-7">
@@ -176,25 +172,17 @@ export function PurchasePanel({ product }: { product: Product }) {
           {product.stock && selectionAvailable ? "Add to cart" : "Unavailable"}
         </button>
       </div>
-      {selectionAvailable && (quantity > 1 || nextAvailableTier || pricing.tier) && (
-        <p
-          className="-mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm leading-6 text-slate-600 max-sm:-mt-2"
-          aria-live="polite"
-        >
+      {selectionAvailable && (nextAvailableTier || pricing.tier) && (
+        <p className="-mt-3 text-sm leading-6 text-[#08788c] max-sm:-mt-2" aria-live="polite">
           {pricing.tier ? (
-            <span className="inline-flex items-center gap-2 rounded-full bg-[#e9f7f8] px-3 py-1 font-semibold text-[#08788c]">
-              <span aria-hidden="true">✓</span>
-              You saved {pricing.tier.discountPercent}% with volume pricing
+            <span className="font-medium">
+              You save {pricing.tier.discountPercent}% with volume pricing
             </span>
           ) : nextAvailableTier ? (
-            <span className="inline-flex items-center gap-2 rounded-full bg-[#e9f7f8] px-3 py-1 font-semibold text-[#08788c]">
-              <span aria-hidden="true">✦</span>
+            <span className="font-medium">
               Buy {nextAvailableTier.minQuantity}+ boxes, save {nextAvailableTier.discountPercent}%
             </span>
           ) : null}
-          {quantity > 1 && (
-            <span className="font-medium text-[#253138]">{formatPrice(pricing.total)} total</span>
-          )}
         </p>
       )}
       {notice && (

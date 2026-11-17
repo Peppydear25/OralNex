@@ -55,7 +55,6 @@ export function CollectionEditor({ collection, products, onClose, onSave }: Prop
           imagePath: image === collection?.image ? collection.imagePath : image,
           name,
           slug: slugify(name),
-          description: String(data.get("description") ?? "").trim(),
           image,
         },
         collection?.slug,
@@ -75,7 +74,7 @@ export function CollectionEditor({ collection, products, onClose, onSave }: Prop
   return (
     <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-auto bg-slate-950/60 p-6 backdrop-blur-sm">
       <section
-        className="m-auto w-full max-w-[560px] overflow-hidden rounded-xl bg-white shadow-2xl [&>header]:flex [&>header]:items-center [&>header]:justify-between [&>header]:border-b [&>header]:border-slate-200 [&>header]:px-5 [&>header]:py-4 [&>header_h2]:text-xl [&>header_h2]:font-semibold [&>header_h2]:leading-tight [&>header>button]:grid [&>header>button]:size-9 [&>header>button]:place-items-center [&>header>button]:rounded-full [&>header>button]:border [&>header>button]:border-slate-300 [&_footer]:flex [&_footer]:justify-end [&_footer]:gap-2 [&_footer]:border-t [&_footer]:border-slate-200 [&_footer]:px-5 [&_footer]:py-3 [&_footer_button]:rounded-lg [&_footer_button]:border [&_footer_button]:border-slate-300 [&_footer_button]:px-4 [&_footer_button]:py-2"
+        className="m-auto w-full max-w-[560px] overflow-hidden rounded-lg bg-white shadow-2xl [&>header]:flex [&>header]:items-center [&>header]:justify-between [&>header]:border-b [&>header]:border-slate-200 [&>header]:px-5 [&>header]:py-4 [&>header_h2]:text-xl [&>header_h2]:font-semibold [&>header_h2]:leading-tight [&>header>button]:grid [&>header>button]:size-9 [&>header>button]:place-items-center [&>header>button]:rounded-full [&>header>button]:border [&>header>button]:border-slate-300 [&_footer]:flex [&_footer]:justify-end [&_footer]:gap-2 [&_footer]:border-t [&_footer]:border-slate-200 [&_footer]:px-5 [&_footer]:py-3 [&_footer_button]:rounded-lg [&_footer_button]:border [&_footer_button]:border-slate-300 [&_footer_button]:px-4 [&_footer_button]:py-2"
         role="dialog"
         aria-modal="true"
         aria-labelledby="category-editor-title"
@@ -87,20 +86,10 @@ export function CollectionEditor({ collection, products, onClose, onSave }: Prop
           </button>
         </header>
         <form onSubmit={submit}>
-          <div className="grid max-h-[70vh] min-w-0 grid-cols-2 gap-4 overflow-auto p-5 max-sm:grid-cols-1 max-sm:p-4 [&>label]:grid [&>label]:min-w-0 [&>label]:gap-2 [&>label]:text-sm [&>label]:font-semibold [&_input]:h-11 [&_input]:min-w-0 [&_input]:rounded-lg [&_input]:border [&_input]:border-slate-300 [&_input]:px-3 [&_select]:h-11 [&_select]:min-w-0 [&_select]:rounded-lg [&_select]:border [&_select]:border-slate-300 [&_select]:px-3 [&_textarea]:min-w-0 [&_textarea]:rounded-lg [&_textarea]:border [&_textarea]:border-slate-300 [&_textarea]:p-3">
+          <div className="grid max-h-[70vh] min-w-0 grid-cols-2 gap-4 overflow-auto p-5 max-sm:grid-cols-1 max-sm:p-4 [&>label]:grid [&>label]:min-w-0 [&>label]:gap-2 [&>label]:text-sm [&>label]:font-semibold [&_input]:h-11 [&_input]:min-w-0 [&_input]:rounded-lg [&_input]:border [&_input]:border-slate-300 [&_input]:px-3 ">
             <label className="col-span-2 max-sm:col-span-1">
               Category name
               <input name="name" defaultValue={collection?.name} required maxLength={70} />
-            </label>
-            <label className="col-span-2 max-sm:col-span-1">
-              Description
-              <textarea
-                name="description"
-                rows={3}
-                defaultValue={collection?.description}
-                required
-                maxLength={320}
-              />
             </label>
             <div className="col-span-2 max-sm:col-span-1 grid gap-2 text-sm font-semibold">
               <span>Category image</span>
@@ -142,11 +131,13 @@ export function CollectionEditor({ collection, products, onClose, onSave }: Prop
                 </div>
               )}
             </div>
-            <fieldset className="col-span-2 border-0 max-sm:col-span-1 [&_legend]:w-full [&_legend]:font-semibold [&_legend_span]:float-right [&>p]:my-2 [&>p]:text-xs [&>p]:text-slate-500 [&>div]:max-h-72 [&>div]:overflow-auto [&>div]:rounded-lg [&>div]:border [&>div]:border-slate-200 [&>div>label]:flex [&>div>label]:items-center [&>div>label]:gap-3 [&>div>label]:border-t [&>div>label]:border-slate-100 [&>div>label]:p-2 [&_img]:size-11 [&_img]:object-cover">
+            <fieldset className="col-span-2 min-w-0 border-0 max-sm:col-span-1 [&_legend]:w-full [&_legend]:font-semibold [&_legend_span]:float-right [&>p]:my-2 [&>p]:text-xs [&>p]:text-slate-500 [&>div]:mt-3 [&>div]:max-h-72 [&>div]:overflow-auto [&>div]:rounded-lg [&>div]:border [&>div]:border-slate-200 [&>div>label]:flex [&>div>label]:items-center [&>div>label]:gap-3 [&>div>label]:border-t [&>div>label]:border-slate-100 [&>div>label]:p-2 [&_input]:size-4 [&_input]:shrink-0 [&_input]:accent-[#08788c] [&_img]:shrink-0 [&_img]:size-11 [&_img]:object-cover">
               <legend>
-                Products in this category <span>{selectedProducts.length} selected</span>
+                Products in this category{" "}
+                <span className="text-xs font-normal text-slate-500">
+                  {selectedProducts.length} selected
+                </span>
               </legend>
-              <p>Selected products move to this category.</p>
               <div>
                 {products.map((product) => (
                   <label key={product.id}>
@@ -162,9 +153,13 @@ export function CollectionEditor({ collection, products, onClose, onSave }: Prop
                       height={42}
                       unoptimized={product.image.startsWith("data:")}
                     />
-                    <span>
-                      <strong>{product.name}</strong>
-                      <small>Currently: {product.category}</small>
+                    <span className="grid min-w-0 gap-1 py-1">
+                      <strong className="break-words text-sm font-medium leading-5">
+                        {product.name}
+                      </strong>
+                      <small className="text-xs font-normal text-slate-500">
+                        {product.category}
+                      </small>
                     </span>
                   </label>
                 ))}

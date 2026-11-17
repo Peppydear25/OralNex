@@ -124,8 +124,7 @@ export function BuyerDashboard() {
     setAuthResult({
       tone: "success",
       title: "You are signed out",
-      message: "Your OralNex account session has ended successfully on this device.",
-      actionLabel: "Return to sign in",
+      message: "You are signed out on this device.",
     });
   };
 

@@ -28,12 +28,6 @@ export function ShopCategories() {
       <div className="grid grid-cols-2 gap-3 sm:gap-6">
         {availableCollections.map((collection) => {
           const destination = collectionDestination(collection, products)!;
-          const description =
-            collection.name.toLowerCase() === "gloves"
-              ? "Nitrile examination gloves for everyday care."
-              : collection.name.toLowerCase() === "masks"
-                ? "Disposable face masks for your care setting."
-                : collection.description;
           return (
             <Link
               className="group flex min-w-0 flex-col overflow-hidden rounded-2xl border border-[#dce9eb] bg-white no-underline transition-shadow hover:shadow-[0_12px_32px_rgba(15,45,55,.08)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#08788c]"
@@ -52,9 +46,6 @@ export function ShopCategories() {
                 <h3 className="text-xl font-semibold tracking-[-.025em] text-[#172d36] sm:text-3xl">
                   {collection.name}
                 </h3>
-                <p className="mt-3 max-w-[44ch] text-xs leading-6 text-slate-600 sm:text-sm">
-                  {description}
-                </p>
                 <span className="mt-auto flex items-center justify-between gap-2 pt-5 text-xs font-semibold text-[#08788c] sm:pt-7 sm:text-sm">
                   Explore {collection.name.toLowerCase()}
                   <span

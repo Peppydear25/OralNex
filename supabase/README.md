@@ -52,6 +52,11 @@ Keep Row Level Security enabled. Buyer profile, address, and order access is sco
 by the existing policies; catalog writes require an administrator MFA session.
 The `product-media` bucket serves public catalog images with protected admin uploads.
 
+For existing projects, `202611160001_remove_category_description.sql` updates the
+category-save function and removes the unused category description column and its
+stored text. Back up that text before applying the migration if you need to retain
+it. The fresh-project bundle includes this change. Product descriptions are unaffected.
+
 Configure Stripe, USPS, tax, and transactional email using the root README and
 `.env.example`. Test buyer isolation, admin MFA, image uploads, checkout, webhook
 retries, and inventory updates in staging before enabling production checkout.

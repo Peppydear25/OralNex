@@ -30,7 +30,7 @@ beforeEach(() => {
 it("caches only anonymous catalog reads with short revalidation", async () => {
   load.mockResolvedValue({ catalog: { products: [], collections: [] }, error: null });
   expect(await getPublicCatalog()).toMatchObject({ products: [], collections: [] });
-  expect(cached).toHaveBeenCalledWith(expect.any(Function), ["public-catalog-v3"], {
+  expect(cached).toHaveBeenCalledWith(expect.any(Function), ["public-catalog-v4"], {
     revalidate: 15,
   });
   expect(createClient).toHaveBeenCalledWith("https://example.supabase.co", "public-test-key", {

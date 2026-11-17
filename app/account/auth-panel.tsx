@@ -33,7 +33,6 @@ export function AuthPanel({
           title: "This sign-in link could not be used",
           message:
             "The link is invalid, expired, or has already been used. Request a new link and try again.",
-          actionLabel: "Continue",
         }
       : null,
   );
@@ -64,7 +63,6 @@ export function AuthPanel({
           mode === "signin"
             ? "Enter a valid email address and your password."
             : "Enter a valid email address and a password containing at least twelve characters.",
-        actionLabel: "Review details",
       });
       return;
     }
@@ -74,7 +72,6 @@ export function AuthPanel({
         title: "Complete your account details",
         message:
           "Enter your first and last name, then accept the Terms of Service before creating your account.",
-        actionLabel: "Review details",
       });
       return;
     }
@@ -87,8 +84,7 @@ export function AuthPanel({
       setResult({
         tone: "error",
         title: "Account service unavailable",
-        message: "Account access is temporarily unavailable. Please try again later.",
-        actionLabel: "Close",
+        message: "Please try again later.",
       });
       return;
     }
@@ -114,7 +110,6 @@ export function AuthPanel({
           tone: "error",
           title: feedback.title,
           message: feedback.message,
-          actionLabel: "Review details",
         });
         return;
       }
@@ -129,11 +124,9 @@ export function AuthPanel({
         setRedirectPath("/admin/sign-in");
         setResult({
           tone: "success",
-          statusLabel: "Administrator account",
           title: "Continue through the admin portal",
           message:
             "Administrator identities cannot enter the buyer account area. Continue to complete the protected administrator sign-in.",
-          actionLabel: "Continue to admin",
         });
         return;
       }
@@ -148,7 +141,6 @@ export function AuthPanel({
           title: "This account may already exist",
           message:
             "Try signing in with this email, or use Forgot password if you cannot remember the password.",
-          actionLabel: "Review details",
         });
         return;
       }
@@ -156,10 +148,8 @@ export function AuthPanel({
       if (mode === "register" && !response.data.session) {
         setResult({
           tone: "success",
-          statusLabel: "Email verification required",
           title: "Check your inbox",
-          message: "Open the verification email from OralNex to activate your account and sign in.",
-          actionLabel: "Done",
+          message: "Check your email to verify your account.",
         });
         return;
       }
@@ -176,13 +166,11 @@ export function AuthPanel({
     setRedirectPath(safeBuyerPath(returnTo));
     setResult({
       tone: "success",
-      statusLabel: "Account verified",
       title: mode === "signin" ? "Welcome back" : "Your account is ready",
       message:
         mode === "signin"
           ? "You have signed in successfully. Continue to your account dashboard."
           : "Your buyer account has been created successfully. Continue to your account dashboard.",
-      actionLabel: "Continue to account",
     });
   };
   const closeResult = () => {

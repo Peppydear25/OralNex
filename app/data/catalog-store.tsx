@@ -5,16 +5,10 @@ import { readStoredJson, writeStoredJson } from "../lib/browser-storage";
 import { isSupabaseConfigured } from "../../lib/supabase/config";
 import { toError } from "../../lib/errors/to-error";
 import type { Collection, Product } from "./catalog";
-import {
-  defaultCatalogState,
-  sanitizeCatalogState,
-  type CatalogState,
-  type Merchandising,
-} from "./catalog-state";
+import { defaultCatalogState, sanitizeCatalogState, type CatalogState } from "./catalog-state";
 import { loadSupabaseCatalog } from "./supabase-catalog";
 import { CatalogErrorGate, CatalogLoadingGate } from "./catalog-gate";
 
-export type { Merchandising } from "./catalog-state";
 type CatalogContextValue = CatalogState & {
   saveProduct: (product: Product) => Promise<void>;
   removeProduct: (id: number) => Promise<void>;
@@ -24,8 +18,6 @@ type CatalogContextValue = CatalogState & {
     productIds?: number[],
   ) => Promise<void>;
   removeCollection: (slug: string) => Promise<void>;
-  updateMerchandising: (value: Merchandising) => Promise<void>;
-  resetCatalog: () => void;
 };
 
 const STORAGE_KEY = "otm-storefront-catalog-v5";
@@ -114,10 +106,6 @@ export function CatalogProvider({
         setState((current) => ({
           ...current,
           products: current.products.filter((item) => item.id !== id),
-          merchandising: {
-            ...current.merchandising,
-            dealProductIds: current.merchandising.dealProductIds.filter((item) => item !== id),
-          },
         }));
       },
       saveCollection: async (collection, previousSlug, productIds = []) => {
@@ -162,16 +150,6 @@ export function CatalogProvider({
           collections: current.collections.filter((item) => item.slug !== slug),
         }));
       },
-      updateMerchandising: async (merchandising) => {
-        if (isSupabaseConfigured()) {
-          const { saveAdminMerchandising } = await import("./supabase-admin-catalog");
-          await saveAdminMerchandising(merchandising);
-          await refreshLiveCatalog();
-          return;
-        }
-        setState((current) => ({ ...current, merchandising }));
-      },
-      resetCatalog: () => setState(defaultCatalogState),
     }),
     [state],
   );

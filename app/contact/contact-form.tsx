@@ -33,11 +33,9 @@ export function ContactForm() {
     ) {
       setResult({
         tone: "error",
-        statusLabel: "Message not ready",
         title: "Check the form",
         message:
           "Enter your name, a valid email address, and a message between 10 and 2,000 characters.",
-        actionLabel: "Review form",
       });
       return;
     }
@@ -61,22 +59,18 @@ export function ContactForm() {
 
       setResult({
         tone: "success",
-        statusLabel: "Request received",
-        title: "Thank you for contacting OralNex",
-        message: "Your request has been submitted. Our team will review the details you provided.",
-        actionLabel: "Done",
+        title: "Message sent",
+        message: "Our team will review your message.",
       });
       form.reset();
     } catch (error) {
       const rateLimited = error instanceof Error && error.message === "rate_limited";
       setResult({
         tone: "error",
-        statusLabel: rateLimited ? "Please wait" : "Request not sent",
         title: rateLimited ? "Too many requests" : "We could not submit your request",
         message: rateLimited
           ? "Please wait a while before sending another message."
           : "Please check your connection and try the contact form again.",
-        actionLabel: "Return to form",
       });
     } finally {
       setSubmitting(false);

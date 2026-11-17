@@ -22,7 +22,6 @@ export default async function AdminPage({
   return (
     <AdminShell activeTab={initialTab}>
       <AdminDashboard
-        key={initialTab}
         initialTab={initialTab}
         checkoutReady={Boolean(
           process.env.CHECKOUT_ENABLED === "true" &&

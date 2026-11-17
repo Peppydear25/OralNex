@@ -3,6 +3,18 @@ import { slugify } from "../app/admin/dashboard/utils";
 import { defaultCatalogState, sanitizeCatalogState } from "../app/data/catalog-state";
 
 describe("catalog utilities", () => {
+  it("loads categories without descriptions and discards legacy descriptions", () => {
+    const state = {
+      ...defaultCatalogState,
+      collections: defaultCatalogState.collections.map((collection) => ({
+        ...collection,
+        description: "Retired category copy",
+      })),
+    };
+    const result = sanitizeCatalogState(state);
+    expect(result?.collections).toEqual(defaultCatalogState.collections);
+    expect(result?.collections[0]).not.toHaveProperty("description");
+  });
   it("retains automatic packing across browser reloads", () => {
     const automaticPacking = {
       verified: false,

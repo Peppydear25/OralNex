@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { HeroCarousel } from "./components/hero-carousel";
+import { StaticHero } from "./components/static-hero";
 import { CategoryImage } from "./components/category-image";
 import { HomeReveal } from "./components/home-reveal";
 import { SiteFooter } from "./components/site-footer";
@@ -10,18 +10,14 @@ import { getPublicCatalog } from "./data/server-catalog";
 export default async function Home() {
   const catalog = await getPublicCatalog();
   if (!catalog) return null;
-  const { products, collections: managedCollections, merchandising } = catalog;
+  const { products, collections: managedCollections } = catalog;
   return (
     <main className="homepage min-w-0 w-full overflow-x-clip">
       <HomeReveal />
       <SiteHeader />
 
       <section className="w-full overflow-hidden" aria-label="Featured medical equipment">
-        <HeroCarousel
-          slides={merchandising.heroSlides}
-          eyebrow={merchandising.heroEyebrow}
-          title={merchandising.heroTitle}
-        />
+        <StaticHero />
       </section>
 
       <section
@@ -30,74 +26,64 @@ export default async function Home() {
         id="categories"
         aria-labelledby="categories-title"
       >
-        <div className="mb-6 flex flex-wrap items-end justify-between gap-x-6 gap-y-3 sm:mb-8">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-x-6 gap-y-3 sm:mb-8">
           <div>
+            <span className="mb-4 block h-1 w-14 rounded-full bg-[#08788c]" aria-hidden="true" />
             <h2
-              className="text-[clamp(1.65rem,2.5vw,2.25rem)] font-semibold leading-tight tracking-tight text-[#172d36]"
+              className="text-3xl font-semibold leading-tight text-[#172d36] sm:text-4xl"
               id="categories-title"
             >
               Shop by category
             </h2>
+            <p className="mt-2 text-sm leading-6 text-slate-600 sm:text-base">
+              Browse our essential medical supplies
+            </p>
           </div>
           <Link
-            className="group inline-flex min-h-10 shrink-0 items-center gap-2 rounded-lg px-3 text-sm font-semibold text-[#08788c] no-underline transition-colors hover:bg-[#edf6f7] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#08788c]"
+            className="inline-flex min-h-11 items-center gap-3 text-sm font-semibold text-[#08788c] no-underline hover:text-[#066678] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#08788c]"
             href="/shop"
           >
-            Shop all supplies
-            <span
-              className="motion-safe:transition-transform motion-safe:group-hover:translate-x-1"
-              aria-hidden="true"
-            >
-              →
-            </span>
+            View all categories <span aria-hidden="true">&rarr;</span>
           </Link>
         </div>
-        <div className="grid items-stretch gap-5 md:grid-cols-2 md:gap-6">
+        <div className="grid gap-5 md:grid-cols-2 md:gap-6">
           {managedCollections
             .filter((category) => collectionDestination(category, products))
             .map((category) => (
               <Link
-                className="group flex min-w-0 flex-col overflow-hidden rounded-2xl border border-[#d8e8ea] bg-white text-ink no-underline transition-[border-color,box-shadow] duration-200 hover:border-[#0e96aa] hover:shadow-[0_12px_28px_rgba(8,120,140,.09)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#08788c]"
+                className="home-category-card group relative isolate grid min-h-[260px] min-w-0 grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] overflow-hidden rounded-3xl border border-[#c9e5e8] text-[#172d36] no-underline transition-colors hover:border-[#08788c] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#08788c] sm:min-h-[400px]"
                 href={collectionDestination(category, products)!}
-                key={category.name}
+                key={category.slug}
               >
-                <span className="relative block aspect-[4/3] max-h-[420px] overflow-hidden bg-[#edf4f5] sm:aspect-[16/10]">
-                  <CategoryImage
-                    key={category.image}
-                    src={category.image}
-                    sizes="(min-width: 1740px) 788px, (min-width: 768px) 46vw, 92vw"
-                    animate
-                  />
-                </span>
-                <div className="flex flex-1 flex-wrap items-center justify-between gap-4 border-t border-[#d8e8ea] px-5 py-5 sm:px-7 sm:py-6">
-                  <div>
-                    <h3 className="text-[clamp(1.25rem,1.6vw,1.5rem)] font-semibold leading-tight text-[#172d36]">
-                      {category.name}
-                    </h3>
-                    <p className="mt-1.5 text-sm leading-relaxed text-slate-600">
-                      {category.name.toLowerCase() === "gloves"
-                        ? "Nitrile examination gloves"
-                        : category.name.toLowerCase() === "masks"
-                          ? "Disposable face masks"
-                          : "Explore the collection"}
-                    </p>
-                  </div>
-                  <span className="inline-flex min-h-11 shrink-0 items-center gap-3 rounded-lg bg-[#08788c] px-4 text-sm font-semibold text-white transition-colors group-hover:bg-[#066678] group-focus-visible:bg-[#066678]">
-                    Shop {category.name.toLowerCase()}
+                <div className="relative z-10 flex min-w-0 flex-col items-start justify-center gap-7 p-5 sm:gap-9 sm:p-8">
+                  <h3 className="w-full break-words text-xl font-semibold leading-tight sm:text-2xl">
+                    {category.name}
+                  </h3>
+                  <span
+                    className="grid size-12 shrink-0 place-items-center rounded-full bg-[#08788c] text-white transition-colors group-hover:bg-[#066678] group-focus-visible:bg-[#066678]"
+                    aria-hidden="true"
+                  >
                     <svg
-                      className="size-4 motion-safe:transition-transform motion-safe:group-hover:translate-x-0.5"
+                      className="size-6 motion-safe:transition-transform motion-safe:group-hover:translate-x-0.5"
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"
                       strokeWidth="1.8"
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      aria-hidden="true"
                     >
                       <path d="M5 12h14m-6-6 6 6-6 6" />
                     </svg>
                   </span>
                 </div>
+                <span className="relative z-10 block min-h-full min-w-0 overflow-hidden">
+                  <CategoryImage
+                    key={category.image}
+                    src={category.image}
+                    sizes="(min-width: 1740px) 440px, (min-width: 768px) 26vw, 55vw"
+                    animate
+                  />
+                </span>
               </Link>
             ))}
         </div>

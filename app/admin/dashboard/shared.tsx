@@ -54,7 +54,7 @@ export function OperationNotice({
       role="presentation"
     >
       <section
-        className="relative grid w-full max-w-md grid-cols-[54px_1fr] items-center gap-4 rounded-2xl bg-white p-7 shadow-2xl [&>span]:grid [&>span]:size-14 [&>span]:place-items-center [&>span]:rounded-full [&>span]:text-2xl [&_h2]:text-xl [&_h2]:font-semibold [&_p]:text-xs [&_p]:font-bold [&_p]:tracking-wider [&_small]:text-sm [&_small]:text-slate-500 [&>button]:absolute [&>button]:right-3 [&>button]:top-3"
+        className="relative grid w-full max-w-md grid-cols-[54px_1fr] items-center gap-4 rounded-lg bg-white p-5 shadow-2xl [&>span]:grid [&>span]:size-14 [&>span]:place-items-center [&>span]:rounded-full [&>span]:text-2xl [&_h2]:text-base [&_h2]:font-semibold [&_p]:text-xs [&_p]:font-bold [&_p]:tracking-wider [&_small]:text-sm [&_small]:text-slate-500 [&>button]:absolute [&>button]:right-3 [&>button]:top-3"
         role="status"
         aria-live="polite"
       >
@@ -65,11 +65,10 @@ export function OperationNotice({
           {isError ? "!" : "✓"}
         </span>
         <div>
-          <p className={isError ? "text-red-700" : "text-emerald-700"}>
-            {isError ? "ACTION REQUIRED" : "OPERATION SUCCESSFUL"}
-          </p>
           <h2>{notice.title}</h2>
-          <small>{notice.message}</small>
+          {notice.message && (
+            <small className="mt-1 block break-words leading-5">{notice.message}</small>
+          )}
         </div>
         <button type="button" onClick={onClose} aria-label="Close notification">
           ×
@@ -111,27 +110,21 @@ export function ConfirmationDialog({
       }}
     >
       <section
-        className="w-full max-w-md overflow-hidden rounded-[28px] border border-white/70 bg-white shadow-[0_35px_100px_rgba(4,25,35,.38)]"
+        className="w-full max-w-md overflow-hidden rounded-lg border border-slate-200 bg-white shadow-[0_35px_100px_rgba(4,25,35,.38)]"
         role="alertdialog"
         aria-modal="true"
         aria-labelledby="confirmation-title"
         aria-describedby="confirmation-message"
       >
-        <div className="bg-gradient-to-b from-red-50 to-white px-7 pb-5 pt-8">
-          <span
-            className="grid size-14 place-items-center rounded-2xl border border-red-200 bg-white text-2xl font-bold text-red-700 shadow-sm"
-            aria-hidden="true"
-          >
-            !
-          </span>
-          <h2 className="mt-5 text-2xl font-semibold" id="confirmation-title">
+        <div className="px-5 py-5">
+          <h2 className="text-lg font-semibold" id="confirmation-title">
             {title}
           </h2>
-          <p className="mt-3 text-sm leading-6 text-slate-600" id="confirmation-message">
+          <p className="mt-2 text-sm leading-6 text-slate-600" id="confirmation-message">
             {message}
           </p>
         </div>
-        <div className="flex justify-end gap-3 border-t border-slate-100 bg-slate-50 px-7 py-5 [&_button]:rounded-xl [&_button]:px-5 [&_button]:py-3 [&_button]:text-sm [&_button]:font-bold">
+        <div className="flex justify-end gap-2 border-t border-slate-200 px-5 py-3 [&_button]:rounded-lg [&_button]:px-4 [&_button]:py-2 [&_button]:text-sm [&_button]:font-bold">
           <button className="border border-slate-300" type="button" onClick={onClose}>
             Cancel
           </button>

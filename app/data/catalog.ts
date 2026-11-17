@@ -56,7 +56,6 @@ export type Collection = {
   imagePath?: string;
   slug: string;
   name: string;
-  description: string;
   image: string;
 };
 
@@ -170,15 +169,11 @@ export const collections: Collection[] = [
   {
     slug: "gloves",
     name: "Gloves",
-    description:
-      "Shop disposable nitrile examination gloves for dental, clinical, workplace, and general care use in available sizes and colors.",
     image: "/logo.jpg",
   },
   {
     slug: "masks",
     name: "Masks",
-    description:
-      "Shop blue disposable surgical face masks for dental practices, clinics, workplaces, and everyday care settings.",
     image: "/logo.jpg",
   },
 ];

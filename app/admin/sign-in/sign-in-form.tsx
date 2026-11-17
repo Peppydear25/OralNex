@@ -22,15 +22,14 @@ export function AdminSignInForm({ signedOut = false }: { signedOut?: boolean }) 
       ? {
           tone: "success",
           title: "You are signed out",
-          message: "The administrator session ended successfully.",
-          actionLabel: "Return to sign in",
+          message: "You are signed out.",
         }
       : null,
   );
 
   const fail = (title: string, message: string) => {
     setPending(false);
-    setResult({ tone: "error", title, message, actionLabel: "Try again" });
+    setResult({ tone: "error", title, message });
   };
 
   const continueWithMfa = async () => {
@@ -55,10 +54,8 @@ export function AdminSignInForm({ signedOut = false }: { signedOut?: boolean }) 
       setRedirectOnClose(true);
       setResult({
         tone: "success",
-        statusLabel: "MFA verified",
-        title: "Secure administrator access granted",
-        message: "Your identity and authenticator code were verified successfully.",
-        actionLabel: "Open dashboard",
+        title: "Signed in",
+        message: "Verification complete.",
       });
       return;
     }

@@ -27,14 +27,6 @@ export function InventoryPanel({
   onEdit,
   onDelete,
 }: Props) {
-  const statusStyle = (product: Product) =>
-    product.status === "draft"
-      ? "bg-slate-100 text-slate-600"
-      : !product.stock
-        ? "bg-red-50 text-red-700"
-        : (product.inventory ?? 0) < 10
-          ? "bg-amber-50 text-amber-700"
-          : "bg-emerald-50 text-emerald-700";
   return (
     <div className="mx-auto w-full max-w-[1440px] px-8 py-6 max-sm:px-4 max-sm:py-5">
       <section className="overflow-hidden rounded-xl border border-slate-200 bg-white">
@@ -85,8 +77,6 @@ export function InventoryPanel({
                 <th>Product</th>
                 <th>Category</th>
                 <th>Price</th>
-                <th>Inventory</th>
-                <th>Status</th>
                 <th>
                   <span className="sr-only">Actions</span>
                 </th>
@@ -94,7 +84,10 @@ export function InventoryPanel({
             </thead>
             <tbody>
               {products.map((product) => (
-                <tr key={product.id}>
+                <tr
+                  key={product.id}
+                  className={product.status === "draft" ? "bg-slate-100" : "bg-white"}
+                >
                   <td>
                     <div className="flex min-w-[230px] items-center gap-3 [&_p]:flex [&_p]:flex-col [&_strong]:text-sm [&_small]:text-xs [&_small]:text-slate-500">
                       <span className="grid size-10 shrink-0 place-items-center overflow-hidden rounded-lg bg-slate-50 [&_img]:h-full [&_img]:w-full [&_img]:object-cover">
@@ -102,6 +95,7 @@ export function InventoryPanel({
                       </span>
                       <p>
                         <strong>{product.name}</strong>
+                        {product.status === "draft" && <span className="sr-only">Draft</span>}
                         <small>{product.sku}</small>
                       </p>
                     </div>
@@ -114,22 +108,6 @@ export function InventoryPanel({
                         {money(product.oldPrice)}
                       </small>
                     )}
-                  </td>
-                  <td>
-                    <strong>{product.inventory ?? 0}</strong> boxes
-                  </td>
-                  <td>
-                    <span
-                      className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${statusStyle(product)}`}
-                    >
-                      {product.status === "draft"
-                        ? "Draft"
-                        : !product.stock
-                          ? "Out of stock"
-                          : (product.inventory ?? 0) < 10
-                            ? "Low stock"
-                            : "Active"}
-                    </span>
                   </td>
                   <td>
                     <div className="flex justify-end gap-2 [&_button]:rounded-md [&_button]:border [&_button]:border-slate-300 [&_button]:px-3 [&_button]:py-1.5 [&_button]:text-xs">
@@ -149,7 +127,7 @@ export function InventoryPanel({
               ))}
               {products.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="py-12! text-center! text-sm text-slate-500">
+                  <td colSpan={4} className="py-12! text-center! text-sm text-slate-500">
                     {query || category !== "all" ? "No matching products." : "No products yet."}
                   </td>
                 </tr>

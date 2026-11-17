@@ -1,8 +1,11 @@
+"use client";
+
 import Image from "next/image";
-import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { AdminTabLink } from "./admin-tab-link";
 import type { ReactNode } from "react";
 import { adminSignOut } from "./actions";
-import { adminNavigation } from "./admin-navigation";
+import { adminNavigation, parseAdminTab } from "./admin-navigation";
 import type { AdminTab } from "./dashboard/types";
 
 type Props = {
@@ -10,7 +13,9 @@ type Props = {
   children: ReactNode;
 };
 
-export function AdminShell({ activeTab, children }: Props) {
+export function AdminShell({ activeTab: initialTab, children }: Props) {
+  const searchParams = useSearchParams();
+  const activeTab = searchParams ? parseAdminTab(searchParams.get("tab") ?? undefined) : initialTab;
   return (
     <div className="admin-dashboard grid min-h-screen min-w-0 grid-cols-[248px_minmax(0,1fr)] bg-[#f5f8f9] text-sm text-slate-800 max-lg:grid-cols-1 max-lg:grid-rows-[auto_1fr]">
       <aside className="sticky top-0 flex h-screen w-[248px] flex-col border-r border-white/10 bg-[#103740] p-4 text-white max-lg:static max-lg:h-auto max-lg:w-full max-lg:flex-row max-lg:items-center max-sm:p-3">
@@ -27,9 +32,9 @@ export function AdminShell({ activeTab, children }: Props) {
         </p>
         <nav className="mt-2 grid gap-1 max-lg:hidden" aria-label="Admin navigation">
           {adminNavigation.map((item) => (
-            <Link
+            <AdminTabLink
               className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold transition ${activeTab === item.id ? "bg-white text-[#0b5666] shadow-sm" : "text-white/70 hover:bg-white/10 hover:text-white"}`}
-              href={item.id === "overview" ? "/admin" : `/admin?tab=${item.id}`}
+              tab={item.id}
               aria-current={activeTab === item.id ? "page" : undefined}
               key={item.id}
             >
@@ -39,7 +44,7 @@ export function AdminShell({ activeTab, children }: Props) {
                 <AdminNavIcon name={item.icon} />
               </span>
               {item.label}
-            </Link>
+            </AdminTabLink>
           ))}
         </nav>
 
@@ -64,7 +69,6 @@ function AdminNavIcon({ name }: { name: string }) {
     inventory: <path d="m4 7 8-4 8 4-8 4-8-4Zm0 0v10l8 4 8-4V7M12 11v10" />,
     orders: <path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3Zm3 5h6M9 12h6" />,
     categories: <path d="M4 5h7v6H4zM13 5h7v6h-7zM4 13h7v6H4zM13 13h7v6h-7z" />,
-    storefront: <path d="M4 10h16M5 10v10h14V10M3 10l2-6h14l2 6M9 20v-6h6v6" />,
   };
   return (
     <svg

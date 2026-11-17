@@ -22,10 +22,8 @@ export function ForgotPasswordPanel() {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
       setResult({
         tone: "error",
-        statusLabel: "Request not submitted",
         title: "Check your email address",
-        message: "Enter a valid email address to request password-reset instructions.",
-        actionLabel: "Review email",
+        message: "Enter a valid email address.",
       });
       return;
     }
@@ -33,10 +31,8 @@ export function ForgotPasswordPanel() {
     if (!isSupabaseConfigured()) {
       setResult({
         tone: "error",
-        statusLabel: "Recovery service unavailable",
         title: "Password recovery is unavailable",
-        message: "Password recovery is temporarily unavailable. Please try again later.",
-        actionLabel: "Close",
+        message: "Please try again later.",
       });
       return;
     }
@@ -50,11 +46,9 @@ export function ForgotPasswordPanel() {
 
     setResult({
       tone: "success",
-      statusLabel: "Request received",
       title: "Check your inbox",
       message:
         "If an eligible OralNex account exists for that address, password-reset instructions will be sent. For security, this message is the same for every address.",
-      actionLabel: "Done",
     });
     form.reset();
   };

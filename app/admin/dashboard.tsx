@@ -1,15 +1,14 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
+import { AdminTabLink, openAdminTab } from "./admin-tab-link";
+import { parseAdminTab } from "./admin-navigation";
 import dynamic from "next/dynamic";
-import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import type { Collection, Product } from "../data/catalog";
 import { useCatalog } from "../data/catalog-store";
 import { CategoriesPanel } from "./dashboard/categories-panel";
 import { InventoryPanel } from "./dashboard/inventory-panel";
-import { MerchandisingPanel } from "./dashboard/merchandising-panel";
-import { OrdersPanel } from "./dashboard/orders-panel";
 import { OverviewPanel } from "./dashboard/overview-panel";
 import { ConfirmationDialog, OperationNotice } from "./dashboard/shared";
 import type { AdminTab, Editor, Notice } from "./dashboard/types";
@@ -19,6 +18,10 @@ const CollectionEditor = dynamic(() =>
 );
 const ProductEditor = dynamic(() =>
   import("./dashboard/product-editor").then((module) => module.ProductEditor),
+);
+
+const OrdersPanel = dynamic(() =>
+  import("./dashboard/orders-panel").then((module) => module.OrdersPanel),
 );
 
 type DeleteTarget =
@@ -46,11 +49,10 @@ const tabTitles: Record<AdminTab, string> = {
   overview: "Overview",
   inventory: "Inventory",
   categories: "Categories",
-  merchandising: "Storefront merchandising",
   orders: "Orders",
 };
 
-const mobileTabs: AdminTab[] = ["overview", "inventory", "categories", "merchandising", "orders"];
+const mobileTabs: AdminTab[] = ["overview", "inventory", "categories", "orders"];
 
 export function AdminDashboard({
   initialTab,
@@ -60,13 +62,11 @@ export function AdminDashboard({
   checkoutReady: boolean;
 }) {
   const catalog = useCatalog();
-  const router = useRouter();
-  const tab = initialTab;
+  const searchParams = useSearchParams();
+  const tab = searchParams ? parseAdminTab(searchParams.get("tab") ?? undefined) : initialTab;
   const [productQuery, setProductQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [editor, setEditor] = useState<Editor>(null);
-  const [saved, setSaved] = useState(false);
-  const [publishingStorefront, setPublishingStorefront] = useState(false);
   const [notice, setNotice] = useState<Notice>(null);
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget>(null);
 
@@ -81,7 +81,7 @@ export function AdminDashboard({
   );
 
   const openTab = (value: AdminTab) => {
-    router.push(value === "overview" ? "/admin" : `/admin?tab=${value}`);
+    openAdminTab(value);
   };
 
   const deleteProduct = (product: Product) => {
@@ -108,13 +108,11 @@ export function AdminDashboard({
         await catalog.removeProduct(deleteTarget.product.id);
         setNotice({
           title: "Product deleted",
-          message: `${deleteTarget.product.name} was removed from the catalog.`,
         });
       } else {
         await catalog.removeCollection(deleteTarget.collection.slug);
         setNotice({
           title: "Category deleted",
-          message: `${deleteTarget.collection.name} was removed from the storefront.`,
         });
       }
       setDeleteTarget(null);
@@ -137,7 +135,6 @@ export function AdminDashboard({
       setEditor(null);
       setNotice({
         title: editing ? "Product updated" : "Product added",
-        message: `${product.name} is now saved in your catalog.`,
       });
     } catch (error) {
       setNotice({
@@ -162,7 +159,6 @@ export function AdminDashboard({
       setEditor(null);
       setNotice({
         title: editing ? "Category updated" : "Category added",
-        message: `${collection.name} and its product assignments were saved.`,
       });
     } catch (error) {
       setNotice({
@@ -173,32 +169,6 @@ export function AdminDashboard({
         ),
         tone: "error",
       });
-    }
-  };
-
-  const publishStorefront = async (value: typeof catalog.merchandising) => {
-    if (publishingStorefront) return;
-    setPublishingStorefront(true);
-    setSaved(false);
-    try {
-      await catalog.updateMerchandising(value);
-      setSaved(true);
-      window.setTimeout(() => setSaved(false), 2500);
-      setNotice({
-        title: "Storefront published",
-        message: "The homepage hero was updated.",
-      });
-    } catch (error) {
-      setNotice({
-        title: "Storefront not published",
-        message: adminOperationError(
-          error,
-          "The storefront changes could not be saved. Review the images and try again.",
-        ),
-        tone: "error",
-      });
-    } finally {
-      setPublishingStorefront(false);
     }
   };
 
@@ -238,14 +208,14 @@ export function AdminDashboard({
         aria-label="Admin sections"
       >
         {mobileTabs.map((item) => (
-          <Link
+          <AdminTabLink
             className={`min-w-max flex-1 rounded-lg px-3 py-2 text-center text-sm font-semibold capitalize whitespace-nowrap transition ${tab === item ? "bg-[#e6f5f6] text-[#076d7c]" : "text-slate-600 hover:bg-slate-100"}`}
-            href={item === "overview" ? "/admin" : `/admin?tab=${item}`}
+            tab={item}
             aria-current={tab === item ? "page" : undefined}
             key={item}
           >
-            {item === "merchandising" ? "Storefront" : item}
-          </Link>
+            {item}
+          </AdminTabLink>
         ))}
       </nav>
 
@@ -278,14 +248,6 @@ export function AdminDashboard({
           onDelete={deleteCollection}
         />
       )}
-      {tab === "merchandising" && (
-        <MerchandisingPanel
-          merchandising={catalog.merchandising}
-          onSave={publishStorefront}
-          saved={saved}
-          saving={publishingStorefront}
-        />
-      )}
       {tab === "orders" && <OrdersPanel checkoutReady={checkoutReady} />}
 
       {editor?.kind === "product" && (
@@ -311,7 +273,7 @@ export function AdminDashboard({
               ? deleteTarget.product.name
               : deleteTarget.collection.name
           }?`}
-          message="This removes the item from the storefront and cannot be undone."
+          message="This cannot be undone."
           confirmLabel="Delete"
           onConfirm={confirmDelete}
           onClose={() => setDeleteTarget(null)}

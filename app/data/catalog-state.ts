@@ -7,24 +7,9 @@ import {
   type Product,
 } from "./catalog";
 
-export type HeroSlide = {
-  desktopImage: string;
-  mobileImage: string;
-  alt: string;
-  published: boolean;
-};
-
-export type Merchandising = {
-  heroSlides: HeroSlide[];
-  heroEyebrow: string;
-  heroTitle: string;
-  dealProductIds: number[];
-};
-
 export type CatalogState = {
   products: Product[];
   collections: Collection[];
-  merchandising: Merchandising;
 };
 
 export const defaultCatalogState: CatalogState = {
@@ -35,19 +20,6 @@ export const defaultCatalogState: CatalogState = {
     sku: product.sku ?? `ON-${String(product.id).padStart(4, "0")}`,
   })),
   collections: seedCollections,
-  merchandising: {
-    heroSlides: [
-      {
-        desktopImage: "/logo.jpg",
-        mobileImage: "/logo.jpg",
-        alt: "OralNex dental and medical supplies",
-        published: true,
-      },
-    ],
-    heroEyebrow: "Dental and medical essentials",
-    heroTitle: "Examination Gloves and Surgical Face Masks",
-    dealProductIds: [3, 9],
-  },
 };
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -234,7 +206,6 @@ function sanitizeCollection(value: unknown): Collection | null {
     !isRecord(value) ||
     !isNonEmptyString(value.slug) ||
     !isNonEmptyString(value.name) ||
-    !isNonEmptyString(value.description) ||
     !isNonEmptyString(value.image)
   ) {
     return null;
@@ -243,71 +214,7 @@ function sanitizeCollection(value: unknown): Collection | null {
   return {
     slug: value.slug.trim().slice(0, 100),
     name: value.name.trim().slice(0, 100),
-    description: value.description.trim().slice(0, 500),
     image: value.image,
-  };
-}
-
-function stringOr(value: unknown, fallback: string) {
-  return typeof value === "string" ? value.slice(0, 500) : fallback;
-}
-
-function productIdsOr(value: unknown, fallback: number[]) {
-  return Array.isArray(value)
-    ? [...new Set(value.filter((id): id is number => Number.isInteger(id) && id > 0))]
-    : fallback;
-}
-
-function sanitizeMerchandising(value: unknown): Merchandising {
-  const fallback = defaultCatalogState.merchandising;
-  if (!isRecord(value)) return fallback;
-
-  const heroTitle = stringOr(value.heroTitle, fallback.heroTitle);
-  const uploadedHeroImages = Array.isArray(value.heroImages)
-    ? value.heroImages.filter(isNonEmptyString).map((image) => image.slice(0, 8_000_000))
-    : [];
-  const legacyHeroImages = isRecord(value.heroSlideImages)
-    ? Object.values(value.heroSlideImages)
-        .filter(isNonEmptyString)
-        .map((image) => image.slice(0, 8_000_000))
-    : [];
-  const heroImages = (uploadedHeroImages.length ? uploadedHeroImages : legacyHeroImages).slice(
-    0,
-    5,
-  );
-  const configuredSlides = Array.isArray(value.heroSlides)
-    ? value.heroSlides
-        .filter(
-          (slide) =>
-            isRecord(slide) &&
-            isNonEmptyString(slide.desktopImage) &&
-            isNonEmptyString(slide.mobileImage) &&
-            isNonEmptyString(slide.alt),
-        )
-        .map((slide) => ({
-          desktopImage: String(slide.desktopImage).slice(0, 8_000_000),
-          mobileImage: String(slide.mobileImage).slice(0, 8_000_000),
-          alt: String(slide.alt).trim().slice(0, 160),
-          published: slide.published !== false,
-        }))
-        .slice(0, 5)
-    : [];
-  const legacySlides = heroImages.map((image, index) => ({
-    desktopImage: image,
-    mobileImage: image,
-    alt: `OralNex featured medical supplies ${index + 1}`,
-    published: true,
-  }));
-  return {
-    heroSlides: configuredSlides.length
-      ? configuredSlides
-      : legacySlides.length
-        ? legacySlides
-        : fallback.heroSlides,
-    heroEyebrow: stringOr(value.heroEyebrow, fallback.heroEyebrow),
-    heroTitle:
-      heroTitle === "Essential Medical Care Supplies" ? "Essential Medical Equipment" : heroTitle,
-    dealProductIds: productIdsOr(value.dealProductIds, fallback.dealProductIds),
   };
 }
 
@@ -330,6 +237,5 @@ export function sanitizeCatalogState(value: unknown): CatalogState | null {
   return {
     products,
     collections,
-    merchandising: sanitizeMerchandising(value.merchandising),
   };
 }

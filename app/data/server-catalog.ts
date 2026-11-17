@@ -44,7 +44,7 @@ const loadPublicCatalog = unstable_cache(
       return { catalog: null, readAt: Date.now() };
     }
   },
-  ["public-catalog-v3"],
+  ["public-catalog-v4"],
   { revalidate: 15 },
 );
 

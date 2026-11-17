@@ -1,6 +1,5 @@
 import { createClient } from "../../lib/supabase/client";
 import type { Collection, Product } from "./catalog";
-import type { Merchandising } from "./catalog-state";
 import { validPackageProfiles } from "../../lib/shipping/package-profiles";
 import {
   validAutomaticPacking,
@@ -254,7 +253,6 @@ export async function saveAdminCollection(
       id: collection.databaseId ?? null,
       name: collection.name,
       slug: collection.slug,
-      description: collection.description,
       image_path: imagePath,
       product_ids: databaseProductIds,
     },
@@ -274,69 +272,4 @@ export async function deleteAdminCollection(collection: Collection) {
   if (path && !path.startsWith("/") && !path.startsWith("http") && !path.startsWith("data:")) {
     await createClient().storage.from(mediaBucket).remove([path]);
   }
-}
-
-export async function saveAdminMerchandising(merchandising: Merchandising) {
-  if (merchandising.heroSlides.length < 1 || merchandising.heroSlides.length > 3)
-    throw new Error("Storefront requires one to three hero slides.");
-  const client = createClient();
-  const { data: previousSettings } = await client
-    .from("storefront_settings")
-    .select("hero_images,hero_slides")
-    .eq("id", true)
-    .maybeSingle();
-  const uploadedPaths: string[] = [];
-  const persistHeroImage = async (image: string, folder: string) => {
-    const path = await persistImage(image, folder);
-    if (image.startsWith("data:")) uploadedPaths.push(path);
-    return path;
-  };
-  const heroSlides = await Promise.all(
-    merchandising.heroSlides.map(async (slide) => {
-      const image = await persistHeroImage(slide.desktopImage, "storefront/hero");
-      return {
-        desktop_image: image,
-        mobile_image: image,
-        alt: slide.alt.trim(),
-        published: slide.published,
-      };
-    }),
-  );
-  const { error } = await client.rpc("admin_save_storefront_settings", {
-    payload: {
-      hero_images: heroSlides.map((slide) => slide.desktop_image),
-      hero_slides: heroSlides,
-      hero_eyebrow: merchandising.heroEyebrow,
-      hero_title: merchandising.heroTitle,
-      bulk_product_ids: [],
-    },
-  });
-  if (error) {
-    if (uploadedPaths.length) await client.storage.from(mediaBucket).remove(uploadedPaths);
-    throw error;
-  }
-
-  const previousRecord = previousSettings as {
-    hero_images?: string[];
-    hero_slides?: Array<{ desktop_image?: string; mobile_image?: string }>;
-  } | null;
-  const oldPaths = new Set([
-    ...(previousRecord?.hero_images ?? []),
-    ...(previousRecord?.hero_slides ?? []).flatMap((slide) => [
-      slide.desktop_image ?? "",
-      slide.mobile_image ?? "",
-    ]),
-  ]);
-  const retainedPaths = new Set(
-    heroSlides.flatMap((slide) => [slide.desktop_image, slide.mobile_image]),
-  );
-  const obsoletePaths = [...oldPaths].filter(
-    (path) =>
-      path &&
-      !retainedPaths.has(path) &&
-      !path.startsWith("/") &&
-      !path.startsWith("http") &&
-      !path.startsWith("data:"),
-  );
-  if (obsoletePaths.length) await client.storage.from(mediaBucket).remove(obsoletePaths);
 }

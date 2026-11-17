@@ -71,13 +71,11 @@ export function ResetPasswordPanel() {
     if (password.length < 12 || password !== confirmation) {
       setResult({
         tone: "error",
-        statusLabel: "Password not changed",
         title: "Review your new password",
         message:
           password.length < 12
             ? "Use at least twelve characters for your new password."
             : "The passwords do not match. Enter the same password in both fields.",
-        actionLabel: "Review password",
       });
       return;
     }
@@ -88,20 +86,16 @@ export function ResetPasswordPanel() {
     if (error) {
       setResult({
         tone: "error",
-        statusLabel: "Password not changed",
         title: "Your reset link could not be used",
         message: "Request a new password-reset link and try again.",
-        actionLabel: "Close",
       });
       return;
     }
 
     setResult({
       tone: "success",
-      statusLabel: "Password updated",
-      title: "Your password has been changed",
-      message: "You can now sign in with your new password.",
-      actionLabel: "Continue to sign in",
+      title: "Password changed",
+      message: "Sign in with your new password.",
     });
   };
 
