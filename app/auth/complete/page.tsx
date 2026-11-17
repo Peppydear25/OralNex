@@ -1,11 +1,14 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { createClient } from "../../../lib/supabase/client";
 import { safeBuyerPath } from "../../lib/navigation";
 
 export default function CompleteAuthenticationPage() {
+  const started = useRef(false);
   useEffect(() => {
+    if (started.current) return;
+    started.current = true;
     const completeAuthentication = async () => {
       const query = new URLSearchParams(window.location.search);
       const fragment = new URLSearchParams(window.location.hash.slice(1));
@@ -49,7 +52,10 @@ export default function CompleteAuthenticationPage() {
       );
     };
 
-    void completeAuthentication();
+    void completeAuthentication().catch(() => {
+      window.history.replaceState(null, "", window.location.pathname);
+      window.location.replace("/account?authError=expired_or_invalid_link");
+    });
   }, []);
 
   return (

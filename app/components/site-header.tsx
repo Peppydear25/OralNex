@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import dynamic from "next/dynamic";
+import { useRef } from "react";
 import { usePathname } from "next/navigation";
 import { useBuyerAccount } from "../data/buyer-account-store";
 import { useCart } from "../data/cart-store";
@@ -17,6 +18,7 @@ const navItems = [
 
 export function SiteHeader() {
   const cart = useCart();
+  const mobileMenuRef = useRef<HTMLDetailsElement>(null);
   const pathname = usePathname();
   const { buyer } = useBuyerAccount();
   const initials = buyer
@@ -33,6 +35,7 @@ export function SiteHeader() {
           >
             <Image
               src="/logo.jpg"
+              unoptimized
               alt="OralNex"
               width={100}
               height={100}
@@ -125,7 +128,16 @@ export function SiteHeader() {
               </button>
             </div>
           </div>
-          <details className="relative col-start-1 row-start-1 hidden justify-self-start max-lg:block [&_summary]:grid [&_summary]:size-11 [&_summary]:content-center [&_summary]:justify-center [&_summary]:list-none [&_summary::-webkit-details-marker]:hidden [&_summary]:cursor-pointer [&_summary]:gap-1.5 [&_summary]:rounded-lg [&_summary]:p-2 [&_summary]:hover:bg-slate-100 [&_summary_span]:block [&_summary_span]:h-0.5 [&_summary_span]:w-6 [&_summary_span]:bg-[#172d36] [&_nav]:absolute [&_nav]:left-0 [&_nav]:top-12 [&_nav]:z-50 [&_nav]:grid [&_nav]:w-[min(14rem,calc(100vw-2rem))] [&_nav]:gap-1 [&_nav]:rounded-xl [&_nav]:border [&_nav]:border-slate-200 [&_nav]:bg-white [&_nav]:p-3 [&_nav]:shadow-xl [&_a]:rounded-lg [&_a]:px-3 [&_a]:py-2.5">
+          <details
+            ref={mobileMenuRef}
+            onKeyDown={(event) => {
+              if (event.key === "Escape" && mobileMenuRef.current?.open) {
+                mobileMenuRef.current.open = false;
+                mobileMenuRef.current.querySelector("summary")?.focus();
+              }
+            }}
+            className="relative col-start-1 row-start-1 hidden justify-self-start max-lg:block [&_summary]:grid [&_summary]:size-11 [&_summary]:content-center [&_summary]:justify-center [&_summary]:list-none [&_summary::-webkit-details-marker]:hidden [&_summary]:cursor-pointer [&_summary]:gap-1.5 [&_summary]:rounded-lg [&_summary]:p-2 [&_summary]:hover:bg-slate-100 [&_summary_span]:block [&_summary_span]:h-0.5 [&_summary_span]:w-6 [&_summary_span]:bg-[#172d36] [&_nav]:absolute [&_nav]:left-0 [&_nav]:top-12 [&_nav]:z-50 [&_nav]:grid [&_nav]:w-[min(14rem,calc(100vw-2rem))] [&_nav]:gap-1 [&_nav]:rounded-xl [&_nav]:border [&_nav]:border-slate-200 [&_nav]:bg-white [&_nav]:p-3 [&_nav]:shadow-xl [&_a]:rounded-lg [&_a]:px-3 [&_a]:py-2.5"
+          >
             <summary aria-label="Open navigation">
               <span />
               <span />
@@ -135,9 +147,18 @@ export function SiteHeader() {
               aria-label="Mobile navigation"
               className="[&_a]:text-[15px] [&_a]:font-medium [&_a]:leading-6 [&_a]:text-[#172d36] [&_a]:transition-colors [&_a:hover]:text-[#08788c]"
             >
-              <Link href="/shop">Shop supplies</Link>
-              <Link href="/about">Our story</Link>
-              <Link href="/contact">Contact us</Link>
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  aria-current={pathname === item.href ? "page" : undefined}
+                  onNavigate={() => {
+                    if (mobileMenuRef.current) mobileMenuRef.current.open = false;
+                  }}
+                >
+                  {item.label}
+                </Link>
+              ))}
             </nav>
           </details>
         </div>

@@ -124,9 +124,8 @@ export function AuthPanel({
         setRedirectPath("/admin/sign-in");
         setResult({
           tone: "success",
-          title: "Continue through the admin portal",
-          message:
-            "Administrator identities cannot enter the buyer account area. Continue to complete the protected administrator sign-in.",
+          title: "Administrator sign-in",
+          message: "Continue to securely sign in as an administrator.",
         });
         return;
       }
@@ -167,10 +166,7 @@ export function AuthPanel({
     setResult({
       tone: "success",
       title: mode === "signin" ? "Welcome back" : "Your account is ready",
-      message:
-        mode === "signin"
-          ? "You have signed in successfully. Continue to your account dashboard."
-          : "Your buyer account has been created successfully. Continue to your account dashboard.",
+      message: mode === "signin" ? "You’re signed in." : "Your account has been created.",
     });
   };
   const closeResult = () => {

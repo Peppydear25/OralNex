@@ -27,7 +27,12 @@ it("provides mobile and email-client fallbacks with an embedded brand logo", () 
   expect(html).toContain('alt="OralNex"');
   for (const variant of ["order", "contact-admin", "contact-customer"] as const) {
     const variantHtml = emailShell("Title", "", "", "", undefined, variant);
-    expect(variantHtml).toContain('width="68" height="68"');
+    if (variant === "order") {
+      expect(variantHtml).toContain('width="68" height="68"');
+    } else {
+      expect(variantHtml).not.toContain("<img");
+      expect(variantHtml).not.toContain("cid:oralnex-logo");
+    }
     expect(variantHtml).toContain("text-align:center");
   }
 });
@@ -52,6 +57,10 @@ it("preserves recipients and safely formats contact enquiries", async () => {
   expect(buyer.to).toEqual(["buyer@example.com"]);
   expect(admin.reply_to).toBe("buyer@example.com");
   expect(buyer.reply_to).toBe("admin@example.com");
+  for (const email of [admin, buyer]) {
+    expect(email.html).not.toContain("<img");
+    expect(email).not.toHaveProperty("attachments");
+  }
   expect(request.headers["Idempotency-Key"]).toBe("contact/ref-123/0");
   expect(admin.html).toContain("First line<br>&lt;script&gt;");
   expect(admin.html).not.toContain("<script>");

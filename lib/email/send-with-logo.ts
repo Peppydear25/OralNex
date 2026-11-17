@@ -21,9 +21,10 @@ export class EmailDeliveryError extends Error {
 
 /** Each recipient has a stable key so retrying a partially sent pair is safe. */
 export async function sendWithLogo(apiKey: string, eventKey: string, messages: Message[]) {
-  const content = (await readFile(path.join(process.cwd(), "public", "logo.jpg"))).toString(
-    "base64",
-  );
+  const needsLogo = messages.some((message) => message.html.includes("cid:oralnex-logo"));
+  const content = needsLogo
+    ? (await readFile(path.join(process.cwd(), "public", "logo.jpg"))).toString("base64")
+    : undefined;
   const results = await Promise.allSettled(
     messages.map(async (message, index) => {
       const response = await fetchWithRetry("https://api.resend.com/emails", {
@@ -35,14 +36,18 @@ export async function sendWithLogo(apiKey: string, eventKey: string, messages: M
         },
         body: JSON.stringify({
           ...message,
-          attachments: [
-            {
-              filename: "oralnex-logo.jpg",
-              content,
-              content_id: "oralnex-logo",
-              content_type: "image/jpeg",
-            },
-          ],
+          ...(message.html.includes("cid:oralnex-logo")
+            ? {
+                attachments: [
+                  {
+                    filename: "oralnex-logo.jpg",
+                    content,
+                    content_id: "oralnex-logo",
+                    content_type: "image/jpeg",
+                  },
+                ],
+              }
+            : {}),
         }),
         cache: "no-store",
       });

@@ -117,19 +117,6 @@
   pointer-events: none;
 }
 
-[data-home-reveal] {
-  opacity: 0;
-  transform: translateY(28px);
-  transition:
-    opacity 700ms ease,
-    transform 700ms cubic-bezier(0.2, 0.75, 0.25, 1);
-}
-
-[data-home-reveal].home-reveal-visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
 .home-about {
   position: relative;
   isolation: isolate;
@@ -181,11 +168,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  [data-home-reveal] {
-    opacity: 1;
-    transform: none;
-    transition: none;
-  }
   .home-about-accent {
     transform: none;
     transition: none;

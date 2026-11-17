@@ -13,8 +13,9 @@ export function SiteFooter() {
             <div className="flex min-w-0 items-center gap-4">
               <Link className="shrink-0 no-underline" href="/" aria-label="OralNex home">
                 <Image
-                  className="size-24 rounded object-contain contrast-125 saturate-125"
+                  className="size-24 object-contain"
                   src="/logo.jpg"
+                  unoptimized
                   alt=""
                   width={96}
                   height={96}

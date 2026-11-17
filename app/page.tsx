@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { StaticHero } from "./components/static-hero";
 import { CategoryImage } from "./components/category-image";
-import { HomeReveal } from "./components/home-reveal";
 import { SiteFooter } from "./components/site-footer";
 import { SiteHeader } from "./components/site-header";
 import { collectionDestination } from "./data/collection-destination";
@@ -13,7 +12,6 @@ export default async function Home() {
   const { products, collections: managedCollections } = catalog;
   return (
     <main className="homepage min-w-0 w-full overflow-x-clip">
-      <HomeReveal />
       <SiteHeader />
 
       <section className="w-full overflow-hidden" aria-label="Featured medical equipment">
@@ -21,7 +19,6 @@ export default async function Home() {
       </section>
 
       <section
-        data-home-reveal
         className="home-container my-12 sm:my-16"
         id="categories"
         aria-labelledby="categories-title"
@@ -90,7 +87,6 @@ export default async function Home() {
       </section>
 
       <section
-        data-home-reveal
         className="home-about home-container my-14 py-12 sm:my-20 sm:py-16"
         aria-labelledby="about-oral-nex-title"
       >
@@ -127,11 +123,7 @@ export default async function Home() {
         </div>
       </section>
 
-      <section
-        data-home-reveal
-        className="home-container mb-14 sm:mb-20"
-        aria-labelledby="why-oral-nex-title"
-      >
+      <section className="home-container mb-14 sm:mb-20" aria-labelledby="why-oral-nex-title">
         <div className="mb-8 max-w-2xl sm:mb-10">
           <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#08788c]">
             The OralNex way
