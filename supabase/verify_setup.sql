@@ -4,7 +4,7 @@ with expected_tables(table_name) as (
     ('profiles'), ('addresses'), ('categories'), ('products'), ('product_variants'),
     ('product_images'), ('product_features'), ('product_specifications'),
     ('product_bulk_pricing_tiers'), ('storefront_settings'), ('orders'), ('order_items'),
-    ('contact_requests'), ('user_roles'), ('admin_audit_log'), ('api_rate_limits'),
+    ('user_roles'), ('admin_audit_log'), ('api_rate_limits'),
     ('checkout_inventory_reservations')
 ), table_checks as (
   select
@@ -77,8 +77,10 @@ select 'cleanup', 'unused legacy schema',
     and to_regprocedure('public.attach_order_packing_plan()') is null
     and to_regclass('public.contact_requests_status_created_at_idx') is null
     and to_regclass('public.contact_requests_created_at_id_idx') is null
-    and not has_table_privilege('authenticated', 'public.contact_requests', 'SELECT')
-    and not has_table_privilege('authenticated', 'public.contact_requests', 'UPDATE')
+    and case when to_regclass('public.contact_requests') is null then true else
+      not has_table_privilege('authenticated', to_regclass('public.contact_requests'), 'SELECT')
+      and not has_table_privilege('authenticated', to_regclass('public.contact_requests'), 'UPDATE')
+    end
     and not exists (
       select 1 from information_schema.columns
       where table_schema = 'public' and table_name = 'orders' and column_name = 'packing_plan'

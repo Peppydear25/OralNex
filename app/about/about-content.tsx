@@ -5,7 +5,7 @@ export function AboutContent() {
     <main className="min-w-0 overflow-x-clip bg-white px-5 pb-20 pt-14 text-[#35434b] max-sm:px-4 max-sm:pb-14 max-sm:pt-10 sm:pt-20">
       <div className="mx-auto min-w-0 max-w-[1050px]">
         <header className="mb-12 text-center max-sm:mb-9">
-          <h1 className="text-[clamp(24px,4vw,34px)] font-semibold uppercase tracking-[.12em] leading-tight text-[#253138] max-sm:tracking-[.08em]">
+          <h1 className="text-3xl font-semibold tracking-tight leading-tight text-[#253138]">
             About OralNex
           </h1>
           <p className="mt-4 text-sm font-medium tracking-[.08em] text-[#08788c]">
@@ -13,7 +13,7 @@ export function AboutContent() {
           </p>
         </header>
 
-        <article className="min-w-0 text-[16px] leading-[1.85] text-slate-600 [overflow-wrap:anywhere] max-sm:text-[15px] [&>section]:mt-10 [&>section:first-of-type]:mt-0 [&_h2]:mb-3 [&_h2]:text-lg [&_h2]:font-semibold [&_h2]:uppercase [&_h2]:tracking-[.06em] [&_h2]:leading-snug [&_h2]:text-[#253138] max-sm:[&_h2]:text-base">
+        <article className="min-w-0 text-[15px] leading-[1.85] text-slate-600 [overflow-wrap:anywhere] [&>section]:mt-10 [&>section:first-of-type]:mt-0 [&_h2]:mb-3 [&_h2]:text-lg [&_h2]:font-semibold [&_h2]:uppercase [&_h2]:tracking-[.06em] [&_h2]:leading-snug [&_h2]:text-[#253138] max-sm:[&_h2]:text-base">
           <section aria-labelledby="about-overview">
             <h2 id="about-overview">Overview</h2>
             <p>
@@ -57,7 +57,7 @@ export function AboutContent() {
               Good service means making the next step clear. You can see box quantities and volume
               prices before adding an item to your cart, then review delivery options and the full
               amount before payment. If something about a product, order, or delivery needs
-              attention, our contact form gives you a direct way to ask for help.
+              attention, you can reach our team by phone.
             </p>
             <p className="mt-4">
               Have a question?{" "}

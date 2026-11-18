@@ -9,8 +9,9 @@ type EmbeddedCheckout = {
 };
 
 type StripeClient = {
-  initEmbeddedCheckout: (options: {
+  createEmbeddedCheckoutPage: (options: {
     fetchClientSecret: () => Promise<string>;
+    onComplete: () => void;
   }) => Promise<EmbeddedCheckout>;
 };
 
@@ -23,9 +24,11 @@ declare global {
 export function EmbeddedPayment({
   clientSecret,
   publishableKey,
+  sessionId,
 }: {
   clientSecret: string;
   publishableKey: string;
+  sessionId: string;
 }) {
   const [scriptReady, setScriptReady] = useState(false);
   const [error, setError] = useState("");
@@ -37,8 +40,13 @@ export function EmbeddedPayment({
     let checkout: EmbeddedCheckout | undefined;
     const mount = async () => {
       try {
-        checkout = await window.Stripe!(publishableKey).initEmbeddedCheckout({
+        checkout = await window.Stripe!(publishableKey).createEmbeddedCheckoutPage({
           fetchClientSecret: async () => clientSecret,
+          onComplete: () => {
+            window.location.replace(
+              `/checkout/success?session_id=${encodeURIComponent(sessionId)}`,
+            );
+          },
         });
         if (disposed) checkout.destroy();
         else checkout.mount("#stripe-embedded-checkout");
@@ -52,7 +60,7 @@ export function EmbeddedPayment({
       disposed = true;
       checkout?.destroy();
     };
-  }, [clientSecret, publishableKey, scriptReady]);
+  }, [clientSecret, publishableKey, scriptReady, sessionId]);
 
   return (
     <>

@@ -52,7 +52,7 @@ export default function ShippingPolicyPage() {
             cannot be returned unless they arrived damaged, defective, or incorrect.
           </p>
           <p className="mt-4">
-            Start the return through the <Link href="/contact">contact form</Link> before sending
+            Start the return through the <Link href="/contact">contact page</Link> before sending
             anything back. Include the order number, item, quantity, and reason. For damaged or
             incorrect goods, keep the packaging and include clear photos. Follow the return
             instructions and address we provide; do not send returns to our business address unless
@@ -73,7 +73,7 @@ export default function ShippingPolicyPage() {
           <h2>Exchanges</h2>
           <p>
             If an item arrives damaged, defective, or incorrect, contact us through the{" "}
-            <Link href="/contact">contact form</Link> so we can review a replacement or refund. For
+            <Link href="/contact">contact page</Link> so we can review a replacement or refund. For
             a different product or option, request a return under the eligibility rules above and
             place a new order after we confirm the return instructions. We do not offer gift credits
             or automatic exchanges.
@@ -97,7 +97,7 @@ export default function ShippingPolicyPage() {
           <p className="mt-4">
             If an approved refund has not appeared, first check the original payment account, then
             contact your card issuer or bank about its posting time. If you still need help, use our{" "}
-            <Link href="/contact">contact form</Link> with your order number.
+            <Link href="/contact">contact page</Link> with your order number.
           </p>
         </section>
       </PolicyDocumentLayout>

@@ -4,7 +4,7 @@ const links: { id: BuyerTab; label: string }[] = [
   { id: "overview", label: "Overview" },
   { id: "orders", label: "Order history" },
   { id: "addresses", label: "Addresses" },
-  { id: "profile", label: "Account details" },
+  { id: "profile", label: "Account" },
 ];
 
 export function AccountSidebar({

@@ -33,15 +33,14 @@ function adminOperationError(error: unknown, fallback: string) {
   const code = typeof details.code === "string" ? details.code : "";
   const message = typeof details.message === "string" ? details.message : "";
   if (code === "23505") {
-    return "A name, SKU, or product option is already in use. Choose a unique value and try again.";
+    return "Name, SKU, or option already in use. Choose another.";
   }
-  if (code === "23503") return "This item is still in use elsewhere. Remove its assignments first.";
-  if (code === "23514")
-    return "Some values are outside the allowed range. Review the form and try again.";
+  if (code === "23503") return "Remove this item’s assignments first.";
+  if (code === "23514") return "Check the values and try again.";
   if (message.includes("save completed") || message.includes("was saved"))
-    return "The change may have saved, but we could not confirm it. Reload the catalog before trying again.";
+    return "The change may have saved. Reload the catalog to check.";
   if (message.includes("shipping") || message.includes("Shipping"))
-    return "Review the shipping package details and try saving again. If this continues, contact support.";
+    return "Check shipping details and try again.";
   return fallback;
 }
 
@@ -119,10 +118,7 @@ export function AdminDashboard({
     } catch (error) {
       setNotice({
         title: "Delete unsuccessful",
-        message: adminOperationError(
-          error,
-          "The record was not deleted. Check its assignments and try again.",
-        ),
+        message: adminOperationError(error, "Check assignments and try again."),
         tone: "error",
       });
     }
@@ -139,10 +135,7 @@ export function AdminDashboard({
     } catch (error) {
       setNotice({
         title: "Product not saved",
-        message: adminOperationError(
-          error,
-          "The product could not be saved. Review its required fields and try again.",
-        ),
+        message: adminOperationError(error, "Check required fields and try again."),
         tone: "error",
       });
     }
@@ -163,10 +156,7 @@ export function AdminDashboard({
     } catch (error) {
       setNotice({
         title: "Category not saved",
-        message: adminOperationError(
-          error,
-          "The category could not be saved. Review its details and try again.",
-        ),
+        message: adminOperationError(error, "Check the details and try again."),
         tone: "error",
       });
     }

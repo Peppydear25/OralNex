@@ -107,7 +107,7 @@ export function AddressesTab({ addresses, onChange, notify }: Props) {
     return (
       <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <header className="border-b border-slate-200 p-6 max-sm:p-5">
-          <h2 className="text-xl font-semibold">{value ? "Edit address" : "Add address"}</h2>
+          <h2 className="text-lg font-semibold">{value ? "Edit address" : "Add address"}</h2>
           <p className="mt-1 text-sm text-slate-500">This information can prefill checkout.</p>
         </header>
         <form onSubmit={save}>

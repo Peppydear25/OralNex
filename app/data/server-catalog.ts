@@ -21,7 +21,7 @@ const loadPublicCatalog = unstable_cache(
     void cacheScope;
     try {
       const { url, publishableKey } = getSupabaseConfig();
-      const { catalog, error } = await loadSupabaseCatalog(
+      const { catalog, error, diagnostic } = await loadSupabaseCatalog(
         createSupabaseClient(url, publishableKey, {
           auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
           global: { fetch: fetchWithRetry },
@@ -29,6 +29,20 @@ const loadPublicCatalog = unstable_cache(
       );
       // Throw rather than caching a temporary outage as an empty storefront.
       if (error || !catalog) {
+        if (process.env.NODE_ENV === "development") {
+          const code = error && "code" in error ? String(error.code ?? "") : "";
+          const message = error && "message" in error ? String(error.message) : "Unknown error";
+          // Do not print URLs, tokens, or email addresses that may appear in provider errors.
+          const safeMessage = message
+            .replace(/https?:\/\/\S+/gi, "[URL removed]")
+            .replace(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi, "[email removed]")
+            .replace(/\b(?:bearer\s+|apikey[=: ]+)[^\s,;]+/gi, "[credential removed]")
+            .replace(/\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b/g, "[token removed]")
+            .slice(0, 500);
+          console.warn(
+            `[catalog.refresh] table=${diagnostic?.table ?? "unknown"} status=${diagnostic?.status ?? "unknown"} code=${/^[A-Z0-9_]{1,40}$/.test(code) ? code : "unknown"} message=${safeMessage}`,
+          );
+        }
         const code =
           error && typeof error === "object" && "code" in error ? String(error.code) : "";
         const safeCode = /^[A-Z0-9_]{1,40}$/.test(code) ? ` (${code})` : "";

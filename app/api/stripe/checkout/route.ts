@@ -16,6 +16,7 @@ import {
   CheckoutSetupError,
   InventoryReservationError,
   reserveCheckoutInventory,
+  checkoutReservationExpiry,
   linkCheckoutInventory,
   releaseCheckoutInventory,
 } from "../../../../lib/stripe/inventory-reservations";
@@ -35,6 +36,7 @@ import {
   addressNeedsConfirmation,
   verifyDeliveryAddress,
 } from "../../../../lib/shipping/easypost-address";
+import { createQuoteToken, readQuoteToken } from "../../../../lib/shipping/quote-token";
 
 const noStore = { "Cache-Control": "no-store" };
 
@@ -47,6 +49,7 @@ function parseInput(value: unknown): {
   selectedRate?: string;
   expectedShippingCents?: number;
   attemptId?: string;
+  quoteToken?: string;
 } | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const body = value as Record<string, unknown>;
@@ -117,6 +120,11 @@ function parseInput(value: unknown): {
     });
   }
   const selectedRate = body.selectedRate;
+  if (
+    body.quoteToken !== undefined &&
+    (typeof body.quoteToken !== "string" || body.quoteToken.length > 24_000)
+  )
+    return null;
   if (body.action === "pay" && (typeof selectedRate !== "string" || selectedRate.length > 100))
     return null;
   if (
@@ -142,6 +150,7 @@ function parseInput(value: unknown): {
     selectedRate: selectedRate as string | undefined,
     expectedShippingCents: body.expectedShippingCents as number | undefined,
     attemptId: body.attemptId as string | undefined,
+    quoteToken: body.quoteToken as string | undefined,
   };
 }
 
@@ -156,7 +165,6 @@ export async function POST(request: Request) {
     );
   let reservationId: string | null = null;
   let creatingSession = false;
-  let createdSessionId: string | null = null;
   try {
     const input = parseInput(await readJsonBody(request, 16_384));
     if (!input)
@@ -164,10 +172,21 @@ export async function POST(request: Request) {
         { error: "Review your checkout details.", code: "INVALID_CHECKOUT" },
         { status: 400, headers: noStore },
       );
-    if (!(await allowApiRequest("checkout", input.email))) return rateLimitResponse("checkout");
+    const allowed = await allowApiRequest("checkout", input.email).catch((error: unknown) => {
+      reportServiceFailure("checkout.rate_limit", error);
+      throw error;
+    });
+    if (!allowed) return rateLimitResponse("checkout");
+    const useQuoteToken = input.action === "pay" && Boolean(input.quoteToken);
     const [verifiedAddress, checkout] = await Promise.all([
-      verifyDeliveryAddress(input.address),
-      prepareCheckout(input.items, input.action === "pay" ? input.attemptId : undefined),
+      useQuoteToken ? Promise.resolve(input.address) : verifyDeliveryAddress(input.address),
+      prepareCheckout(input.items, input.action === "pay" ? input.attemptId : undefined).catch(
+        (error: unknown) => {
+          if (!(error instanceof CheckoutValidationError))
+            reportServiceFailure("checkout.catalog", error);
+          throw error;
+        },
+      ),
     ]);
     if (addressNeedsConfirmation(input.address, verifiedAddress))
       return Response.json(
@@ -175,22 +194,49 @@ export async function POST(request: Request) {
         { status: 409, headers: noStore },
       );
     const { parcels, lines } = checkout;
-    const rates = await quoteEasyPost(parcels, verifiedAddress);
+    const rates = useQuoteToken
+      ? readQuoteToken(process.env.STRIPE_SECRET_KEY!, input.quoteToken!, input.address, parcels)
+      : await quoteEasyPost(parcels, verifiedAddress);
+    if (!rates)
+      return Response.json(
+        { error: "Shipping quote expired. Please check rates again.", code: "RATE_CHANGED" },
+        { status: 409, headers: noStore },
+      );
     if (!rates.length)
       return Response.json(
         { error: "Shipping is unavailable for this address.", code: "SHIPPING_QUOTE_REQUIRED" },
         { status: 422, headers: noStore },
       );
-    if (input.action === "quote") return Response.json({ rates }, { headers: noStore });
+    if (input.action === "quote")
+      return Response.json(
+        {
+          rates,
+          quoteToken: createQuoteToken(
+            process.env.STRIPE_SECRET_KEY!,
+            input.address,
+            parcels,
+            rates,
+          ),
+        },
+        { headers: noStore },
+      );
     const selected = rates.find((rate) => rate.key === input.selectedRate);
     if (!selected)
       return Response.json(
-        { error: "Please select an available shipping service.", code: "SHIPPING_QUOTE_REQUIRED" },
-        { status: 422, headers: noStore },
+        {
+          error: "Shipping services changed. Please review the new quote.",
+          code: "RATE_CHANGED",
+          rates,
+        },
+        { status: 409, headers: noStore },
       );
     if (selected.amountCents !== input.expectedShippingCents)
       return Response.json(
-        { error: "Shipping rates changed. Please review the new quote.", code: "RATE_CHANGED" },
+        {
+          error: "Shipping rates changed. Please review the new quote.",
+          code: "RATE_CHANGED",
+          rates,
+        },
         { status: 409, headers: noStore },
       );
 
@@ -220,6 +266,7 @@ export async function POST(request: Request) {
         quantity: line.quantity,
       })),
     );
+    const sessionExpiresAt = await checkoutReservationExpiry(reservationId);
     const shipping = {
       name: `${verifiedAddress.firstName} ${verifiedAddress.lastName}`,
       phone: input.phone || undefined,
@@ -243,7 +290,7 @@ export async function POST(request: Request) {
       {
         mode: "payment",
         ui_mode: "embedded_page",
-        expires_at: Math.floor(Date.now() / 1000) + 31 * 60,
+        expires_at: sessionExpiresAt,
         return_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
         customer: customer.id,
         client_reference_id: buyerId,
@@ -281,7 +328,22 @@ export async function POST(request: Request) {
       },
       { idempotencyKey: keys.session },
     );
-    createdSessionId = session.id;
+    if (session.status === "expired")
+      return Response.json({ code: "CHECKOUT_EXPIRED" }, { status: 409, headers: noStore });
+    if (session.status === "complete") {
+      const response = NextResponse.json(
+        { sessionId: session.id, status: "complete" },
+        { headers: noStore },
+      );
+      response.cookies.set(receiptCookieName(session.id), keys.receiptToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/checkout/success",
+        maxAge: 24 * 60 * 60,
+      });
+      return response;
+    }
     await linkCheckoutInventory(reservationId, session.id, session.expires_at);
     if (!session.client_secret) throw new Error("Stripe returned no client secret.");
     const response = NextResponse.json(
@@ -302,19 +364,8 @@ export async function POST(request: Request) {
     });
     return response;
   } catch (error) {
-    if (reservationId && createdSessionId) {
-      try {
-        await getStripe().checkout.sessions.expire(createdSessionId);
-        try {
-          await releaseCheckoutInventory(reservationId, createdSessionId);
-        } catch {
-          // The link may have failed before its session ID reached the database.
-          await releaseCheckoutInventory(reservationId);
-        }
-      } catch (cleanupError) {
-        reportServiceFailure("checkout.session_cleanup", cleanupError);
-      }
-    }
+    // Once creation starts, another retry may already have received the same
+    // idempotent session. Never expire it or release its stock here.
     if (reservationId && !creatingSession) {
       try {
         await releaseCheckoutInventory(reservationId);
@@ -355,11 +406,9 @@ export async function POST(request: Request) {
     if (error instanceof EasyPostUnavailable) {
       reportServiceFailure("checkout.shipping_quote", error);
       if (process.env.NODE_ENV !== "production")
-        console.error("Checkout shipping quote failed:", {
-          code: error.code,
-          message: error.message,
-          cause: error.cause instanceof Error ? error.cause.name : undefined,
-        });
+        console.error(
+          `Checkout shipping quote failed: ${error.code}; ${error.message}; cause: ${error.cause instanceof Error ? error.cause.name : "unknown"}`,
+        );
       return Response.json(
         { error: "Shipping rates are temporarily unavailable.", code: error.code },
         { status: error.code === "SHIPPING_DETAILS_INVALID" ? 422 : 503, headers: noStore },

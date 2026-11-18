@@ -26,6 +26,8 @@ vi.mock("../lib/stripe/inventory-reservations", () => ({
 }));
 vi.mock("../lib/errors/report-service-failure", () => ({ reportServiceFailure: vi.fn() }));
 import { POST } from "../app/api/stripe/webhook/route";
+import { OrderEmailConfigurationError } from "../lib/email/order-email-config";
+import { reportServiceFailure } from "../lib/errors/report-service-failure";
 
 function webhookRequest(body = "signed-payload") {
   return new Request("https://oralnex.example/api/stripe/webhook", {
@@ -88,6 +90,22 @@ it("preserves signed bytes and asks Stripe to retry a notification failure", asy
   expect(retried.status).toBe(200);
   expect(recordPaidCheckout).toHaveBeenCalledTimes(2);
   expect(sendPaidOrderEmails).toHaveBeenCalledTimes(2);
+});
+
+it("identifies missing email configuration while retaining webhook retries", async () => {
+  vi.stubEnv("STRIPE_WEBHOOK_SECRET", "whsec_test");
+  constructEvent.mockReturnValue({
+    type: "checkout.session.completed",
+    data: { object: { id: "cs_test_paid" } },
+  });
+  recordPaidCheckout.mockResolvedValue({ order: { orderNumber: "ON-TEST" } });
+  sendPaidOrderEmails.mockRejectedValueOnce(new OrderEmailConfigurationError());
+
+  expect((await POST(webhookRequest())).status).toBe(503);
+  expect(reportServiceFailure).toHaveBeenCalledWith(
+    "order.notification.configuration",
+    expect.any(OrderEmailConfigurationError),
+  );
 });
 
 it("notifies the customer after an asynchronous payment failure without recording a paid order", async () => {

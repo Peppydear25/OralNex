@@ -2,7 +2,7 @@ import type { EmailOtpType } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import { createClient } from "../../../lib/supabase/server";
 import { isSupabaseConfigured } from "../../../lib/supabase/config";
-import { safeBuyerPath } from "../../lib/navigation";
+import { authenticationDestination, safeBuyerPath } from "../../lib/navigation";
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
@@ -10,7 +10,10 @@ export async function GET(request: Request) {
   const tokenHash = requestUrl.searchParams.get("token_hash");
   const type = requestUrl.searchParams.get("type") as EmailOtpType | null;
   const requestedPath = requestUrl.searchParams.get("next");
-  const nextPath = safeBuyerPath(requestedPath);
+  const nextPath = safeBuyerPath(
+    requestedPath,
+    type === "recovery" ? "/account/reset-password" : "/account/dashboard",
+  );
 
   if (!isSupabaseConfigured()) {
     return NextResponse.redirect(new URL("/account?authError=invalid_callback", requestUrl.origin));
@@ -35,7 +38,7 @@ export async function GET(request: Request) {
     const { data } = await supabase.auth.getUser();
     if (data.user) {
       const { data: claimsData } = await supabase.auth.getClaims();
-      const destination = claimsData?.claims?.user_role === "admin" ? "/admin/sign-in" : nextPath;
+      const destination = authenticationDestination(nextPath, claimsData?.claims?.user_role);
       return NextResponse.redirect(new URL(destination, requestUrl.origin));
     }
     return NextResponse.redirect(
@@ -44,9 +47,7 @@ export async function GET(request: Request) {
   }
 
   const { data: claimsData } = await supabase.auth.getClaims();
-  if (claimsData?.claims?.user_role === "admin") {
-    return NextResponse.redirect(new URL("/admin/sign-in", requestUrl.origin));
-  }
-
-  return NextResponse.redirect(new URL(nextPath, requestUrl.origin));
+  return NextResponse.redirect(
+    new URL(authenticationDestination(nextPath, claimsData?.claims?.user_role), requestUrl.origin),
+  );
 }

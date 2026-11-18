@@ -72,10 +72,7 @@ export function ResetPasswordPanel() {
       setResult({
         tone: "error",
         title: "Review your new password",
-        message:
-          password.length < 12
-            ? "Use at least twelve characters for your new password."
-            : "The passwords do not match. Enter the same password in both fields.",
+        message: password.length < 12 ? "Use at least 12 characters." : "Passwords do not match.",
       });
       return;
     }
@@ -87,7 +84,7 @@ export function ResetPasswordPanel() {
       setResult({
         tone: "error",
         title: "Your reset link could not be used",
-        message: "Request a new password-reset link and try again.",
+        message: "Request a new reset link.",
       });
       return;
     }

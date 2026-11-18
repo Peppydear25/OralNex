@@ -103,8 +103,7 @@ it("attempts order email delivery for test payments with the Resend test sender"
   vi.stubEnv("STRIPE_SECRET_KEY", "sk_test_checkout");
   vi.stubEnv("ORDER_EMAIL_NOTIFICATIONS_ENABLED", "true");
   vi.stubEnv("RESEND_API_KEY", "test-key");
-  vi.stubEnv("ORDER_EMAIL_FROM", "");
-  vi.stubEnv("REQUEST_EMAIL_FROM", "OralNex <onboarding@resend.dev>");
+  vi.stubEnv("ORDER_EMAIL_FROM", "OralNex <onboarding@resend.dev>");
   vi.stubEnv("ADMIN_NOTIFICATION_EMAIL", "admin@oralnex.com");
   const fetchMock = vi.fn().mockResolvedValue(new Response("{}", { status: 200 }));
   vi.stubGlobal("fetch", fetchMock);

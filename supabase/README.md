@@ -39,7 +39,7 @@ backing up data you intend to retain. The remaining historical migrations are
 retained because they also establish schema still used by the application.
 Fresh databases seed image paths that exist in `public/`. Existing databases
 that still contain the retired image paths need a separate, reviewed data fix.
-The contact-requests table remains in use by the server-side contact form, but
+The historical contact-requests table is no longer used by the storefront, and
 the retired admin Requests panel's browser read/update grants and indexes are
 removed. Re-run `verify_setup.sql` after migrating. This streamlined migration
 set is for a fresh database. If an

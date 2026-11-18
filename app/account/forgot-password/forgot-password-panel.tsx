@@ -47,8 +47,7 @@ export function ForgotPasswordPanel() {
     setResult({
       tone: "success",
       title: "Check your inbox",
-      message:
-        "If an eligible OralNex account exists for that address, password-reset instructions will be sent. For security, this message is the same for every address.",
+      message: "If an account exists for this email, we’ll send you a reset link.",
     });
     form.reset();
   };

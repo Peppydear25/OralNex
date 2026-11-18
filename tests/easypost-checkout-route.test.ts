@@ -31,6 +31,7 @@ vi.mock("../lib/stripe/inventory-reservations", () => ({
   CheckoutSetupError: class extends Error {},
   InventoryReservationError: class extends Error {},
   reserveCheckoutInventory: mocks.reserveInventory,
+  checkoutReservationExpiry: async () => 2_000_000_000,
   linkCheckoutInventory: mocks.linkInventory,
   releaseCheckoutInventory: mocks.releaseInventory,
 }));
@@ -84,6 +85,7 @@ function request(
   action: "quote" | "pay",
   expectedShippingCents?: number,
   attemptId = "d352b311-6b21-4af3-8400-d6db47a2811a",
+  quoteToken?: string,
 ) {
   return new Request("http://localhost:3000/api/stripe/checkout", {
     method: "POST",
@@ -97,6 +99,7 @@ function request(
       selectedRate: rate.key,
       expectedShippingCents,
       attemptId,
+      quoteToken,
     }),
   });
 }
@@ -104,6 +107,32 @@ function request(
 afterEach(() => {
   vi.clearAllMocks();
   vi.unstubAllEnvs();
+});
+
+it("uses the signed carrier quote for payment without a second carrier call", async () => {
+  mocks.prepare.mockResolvedValue({ parcels: [], lines: [] });
+  mocks.quote.mockResolvedValue([rate]);
+  const quoteResponse = await POST(request("quote"));
+  const { quoteToken } = await quoteResponse.json();
+  mocks.createCustomer.mockResolvedValue({ id: "cus_test" });
+  mocks.createSession.mockResolvedValue({ id: "cs_test", client_secret: "secret_test" });
+  const response = await POST(request("pay", 940, undefined, quoteToken));
+  expect(response.status).toBe(200);
+  expect(mocks.quote).toHaveBeenCalledTimes(1);
+  expect(mocks.verifyAddress).toHaveBeenCalledTimes(1);
+  expect(
+    mocks.createSession.mock.calls[0][0].shipping_options[0].shipping_rate_data.fixed_amount.amount,
+  ).toBe(940);
+});
+
+it("rejects a tampered quote before creating a payment", async () => {
+  mocks.prepare.mockResolvedValue({ parcels: [], lines: [] });
+  mocks.quote.mockResolvedValue([rate]);
+  const { quoteToken } = await (await POST(request("quote"))).json();
+  const response = await POST(request("pay", 940, undefined, `${quoteToken}x`));
+  expect(response.status).toBe(409);
+  expect((await response.json()).code).toBe("RATE_CHANGED");
+  expect(mocks.createSession).not.toHaveBeenCalled();
 });
 
 beforeEach(() => {
@@ -188,7 +217,19 @@ it("rejects a changed carrier price before Stripe is called", async () => {
   mocks.quote.mockResolvedValue([rate]);
   const response = await POST(request("pay", 900));
   expect(response.status).toBe(409);
-  expect((await response.json()).code).toBe("RATE_CHANGED");
+  expect(await response.json()).toMatchObject({ code: "RATE_CHANGED", rates: [rate] });
+  expect(mocks.createCustomer).not.toHaveBeenCalled();
+});
+
+it("returns current rates when the selected service disappears", async () => {
+  mocks.prepare.mockResolvedValue({ parcels: [], lines: [] });
+  mocks.quote.mockResolvedValue([{ ...rate, key: "UPS:Ground" }]);
+  const response = await POST(request("pay", 940));
+  expect(response.status).toBe(409);
+  expect(await response.json()).toMatchObject({
+    code: "RATE_CHANGED",
+    rates: [expect.objectContaining({ key: "UPS:Ground" })],
+  });
   expect(mocks.createCustomer).not.toHaveBeenCalled();
 });
 
@@ -243,6 +284,8 @@ it("uses stable Stripe keys and receipt access for retries of one attempt", asyn
   expect(mocks.createSession.mock.calls[0][1].idempotencyKey).toBe(
     mocks.createSession.mock.calls[1][1].idempotencyKey,
   );
+  expect(mocks.createSession.mock.calls[0][0].expires_at).toBe(2_000_000_000);
+  expect(mocks.createSession.mock.calls[1][0]).toEqual(mocks.createSession.mock.calls[0][0]);
   expect(first.headers.get("set-cookie")).toBe(second.headers.get("set-cookie"));
   const token = first.headers
     .get("set-cookie")
@@ -255,6 +298,46 @@ it("uses stable Stripe keys and receipt access for retries of one attempt", asyn
   expect(mocks.createSession.mock.calls[2][1].idempotencyKey).not.toBe(
     mocks.createSession.mock.calls[0][1].idempotencyKey,
   );
+});
+
+it("does not expire or release a session when linking fails after creation", async () => {
+  mocks.prepare.mockResolvedValue({ parcels: [], lines: [] });
+  mocks.quote.mockResolvedValue([rate]);
+  mocks.createCustomer.mockResolvedValue({ id: "cus_retry" });
+  mocks.createSession.mockResolvedValue({
+    id: "cs_retry",
+    status: "open",
+    client_secret: "secret",
+  });
+  mocks.linkInventory.mockRejectedValueOnce(new Error("temporary database failure"));
+
+  const response = await POST(request("pay", 940));
+  expect(response.status).toBe(503);
+  expect(mocks.releaseInventory).not.toHaveBeenCalled();
+});
+
+it("does not return an expired session as a payment form", async () => {
+  mocks.prepare.mockResolvedValue({ parcels: [], lines: [] });
+  mocks.quote.mockResolvedValue([rate]);
+  mocks.createCustomer.mockResolvedValue({ id: "cus_retry" });
+  mocks.createSession.mockResolvedValue({ id: "cs_retry", status: "expired" });
+
+  const response = await POST(request("pay", 940));
+  expect(response.status).toBe(409);
+  expect((await response.json()).code).toBe("CHECKOUT_EXPIRED");
+  expect(mocks.linkInventory).not.toHaveBeenCalled();
+});
+
+it("returns a completed session for confirmation instead of mounting payment again", async () => {
+  mocks.prepare.mockResolvedValue({ parcels: [], lines: [] });
+  mocks.quote.mockResolvedValue([rate]);
+  mocks.createCustomer.mockResolvedValue({ id: "cus_retry" });
+  mocks.createSession.mockResolvedValue({ id: "cs_retry", status: "complete" });
+
+  const response = await POST(request("pay", 940));
+  expect(await response.json()).toEqual({ sessionId: "cs_retry", status: "complete" });
+  expect(response.headers.get("set-cookie")).toContain("HttpOnly");
+  expect(mocks.linkInventory).not.toHaveBeenCalled();
 });
 
 it("requires a valid payment attempt ID", async () => {

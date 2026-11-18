@@ -17,7 +17,7 @@ const tabTitles: Record<BuyerTab, string> = {
   overview: "My account",
   orders: "Order history",
   addresses: "Addresses",
-  profile: "Account details",
+  profile: "Account",
 };
 
 export function BuyerDashboard() {
@@ -96,7 +96,7 @@ export function BuyerDashboard() {
     return (
       <>
         <div className="mx-auto grid min-h-[55vh] max-w-xl place-content-center px-6 text-center">
-          <h1 className="text-3xl font-semibold">Sign in to view your account</h1>
+          <h1 className="text-2xl font-semibold">Sign in to view your account</h1>
           <p className="my-4 text-slate-500">
             Sign in to access your account details and order history.
           </p>
@@ -119,8 +119,13 @@ export function BuyerDashboard() {
   }
 
   const buyer = account.buyer;
-  const signOut = () => {
-    account.signOut();
+  const signOut = async () => {
+    try {
+      await account.signOut();
+    } catch {
+      notify("Could not sign out. Please check your connection and try again.");
+      return;
+    }
     setAuthResult({
       tone: "success",
       title: "You are signed out",
@@ -131,9 +136,7 @@ export function BuyerDashboard() {
   return (
     <div className="mx-auto min-w-0 w-[calc(100%-3rem)] max-w-[1180px] py-12 max-sm:w-[calc(100%-2rem)] max-sm:py-8">
       <header className="mb-7 flex items-center justify-between gap-3 border-b border-slate-200 pb-5 max-sm:mb-6">
-        <h1 className="text-[clamp(28px,4vw,38px)] font-medium leading-tight tracking-tight">
-          {tabTitles[tab]}
-        </h1>
+        <h1 className="text-2xl font-medium leading-tight tracking-tight">{tabTitles[tab]}</h1>
         <button
           className="hidden min-h-11 shrink-0 items-center rounded-lg border border-slate-300 bg-white px-3 text-sm font-semibold text-[#172d36] hover:border-[#08788c] hover:text-[#08788c] max-lg:inline-flex"
           type="button"
@@ -301,7 +304,7 @@ export function BuyerDashboard() {
 function OrderState({ title, message }: { title: string; message: string }) {
   return (
     <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center">
-      <h2 className="text-xl font-semibold">{title}</h2>
+      <h2 className="text-lg font-semibold">{title}</h2>
       <p className="mt-2 text-sm text-slate-500">{message}</p>
     </div>
   );

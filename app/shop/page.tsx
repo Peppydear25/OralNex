@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import Link from "next/link";
+import { CategoryImage } from "../components/category-image";
 import { SiteFooter } from "../components/site-footer";
 import { SiteHeader } from "../components/site-header";
 import { collectionDestination } from "../data/collection-destination";
@@ -32,11 +34,54 @@ export default async function ShopPage({
   const catalog = initialCategory?.trim() ? await getPublicCatalog() : null;
   if (initialCategory?.trim()) {
     const collection = catalog?.collections.find(
-      (item) => item.name.toLowerCase() === initialCategory.trim().toLowerCase(),
+      (item) =>
+        item.slug.toLowerCase() === initialCategory.trim().toLowerCase() ||
+        item.name.toLowerCase() === initialCategory.trim().toLowerCase(),
     );
     if (collection && catalog) {
       const destination = collectionDestination(collection, catalog.products);
       if (destination) redirect(destination);
+      const products = catalog.products.filter(
+        (product) => product.category === collection.name && product.status !== "draft",
+      );
+      return (
+        <>
+          <SiteHeader />
+          <main className="store-container py-10 sm:py-14">
+            <Link href="/shop" className="text-sm font-semibold text-[#08788c]">
+              ← All categories
+            </Link>
+            <h1 className="mt-5 text-3xl font-semibold text-[#172d36]">{collection.name}</h1>
+            {products.length === 0 ? (
+              <p className="mt-8 rounded-xl bg-slate-50 p-8 text-center text-sm text-slate-600">
+                No products are available in this category yet.
+              </p>
+            ) : (
+              <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                {products.map((product) => (
+                  <Link
+                    key={product.slug}
+                    href={`/products/${product.slug}`}
+                    className="group overflow-hidden rounded-2xl border border-[#dce9eb] text-[#172d36] no-underline hover:border-[#08788c] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#08788c]"
+                  >
+                    <div className="relative aspect-[4/3] bg-[#f1f7f7]">
+                      <CategoryImage src={product.image} alt="" />
+                    </div>
+                    <div className="p-5">
+                      <h2 className="text-lg font-semibold">{product.name}</h2>
+                      <p className="mt-2 text-sm text-slate-600">{product.summary}</p>
+                      <span className="mt-4 inline-block text-sm font-semibold text-[#08788c]">
+                        View product →
+                      </span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </main>
+          <SiteFooter />
+        </>
+      );
     }
   }
   return (

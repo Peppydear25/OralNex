@@ -1,6 +1,10 @@
 import "server-only";
 import { sendWithLogo } from "./send-with-logo";
-import { orderEmailReady, orderEmailSender } from "./order-email-config";
+import {
+  OrderEmailConfigurationError,
+  orderEmailReady,
+  orderEmailSender,
+} from "./order-email-config";
 
 import { emailShell, escapeHtml, referenceBlock } from "./template";
 import { displayReference } from "../display-reference";
@@ -30,7 +34,7 @@ function orderDetails(order: VerifiedOrderInput) {
   const shippingLabel = order.shippingAddress.shippingMethod
     ? `Shipping (${escapeHtml(order.shippingAddress.shippingMethod)})`
     : "Shipping";
-  return `${referenceBlock("Order reference", displayReference(order.orderNumber, "order"))}
+  return `${referenceBlock("Order reference", displayReference(order.orderNumber))}
     <h2 style="margin:0;font-size:17px;line-height:25px">Order summary</h2>
     <table aria-label="Order summary" width="100%" cellpadding="0" cellspacing="0" style="width:100%;table-layout:fixed;border-collapse:collapse;font-size:13px;line-height:21px">
       <thead><tr><th scope="col" style="text-align:left;padding-top:12px;font-size:12px;font-weight:400">Item</th><th scope="col" width="90" style="width:90px;text-align:right;padding-top:12px;font-size:12px;font-weight:400">Amount</th></tr></thead>
@@ -59,15 +63,14 @@ function shippingBlock(order: VerifiedOrderInput) {
 export async function sendPaidOrderEmails(order: VerifiedOrderInput) {
   const testMode = process.env.STRIPE_SECRET_KEY?.startsWith("sk_test_");
   if (!testMode && !orderEmailReady()) {
-    throw new Error("Production order-email configuration is incomplete.");
+    throw new OrderEmailConfigurationError();
   }
   if (testMode && process.env.ORDER_EMAIL_NOTIFICATIONS_ENABLED !== "true")
     return { skipped: true } as const;
   const apiKey = process.env.RESEND_API_KEY?.trim();
   const from = orderEmailSender();
   const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL?.trim();
-  if (!apiKey || !from || !adminEmail)
-    throw new Error("Resend order-email configuration is incomplete.");
+  if (!apiKey || !from || !adminEmail) throw new OrderEmailConfigurationError();
 
   const details = orderDetails(order);
   const buyerHtml = emailShell(
@@ -88,7 +91,7 @@ export async function sendPaidOrderEmails(order: VerifiedOrderInput) {
       from,
       to: [order.customerEmail],
       reply_to: adminEmail,
-      subject: `Order ${displayReference(order.orderNumber, "order")} confirmed`,
+      subject: `Order ${displayReference(order.orderNumber)} confirmed`,
       html: buyerHtml,
     },
     {

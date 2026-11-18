@@ -27,8 +27,7 @@ it("rejects a disabled email flow or a test-only sender", () => {
   expect(
     orderEmailReady({
       ...configured,
-      ORDER_EMAIL_FROM: "",
-      REQUEST_EMAIL_FROM: "OralNex <onboarding@resend.dev>",
+      ORDER_EMAIL_FROM: "OralNex <onboarding@resend.dev>",
     }),
   ).toBe(false);
   expect(
@@ -36,14 +35,8 @@ it("rejects a disabled email flow or a test-only sender", () => {
   ).toBe(false);
 });
 
-it("accepts a verified fallback sender", () => {
-  expect(
-    orderEmailReady({
-      ...configured,
-      ORDER_EMAIL_FROM: "",
-      REQUEST_EMAIL_FROM: "OralNex <support@oralnex.com>",
-    }),
-  ).toBe(true);
+it("requires an order sender", () => {
+  expect(orderEmailReady({ ...configured, ORDER_EMAIL_FROM: "" })).toBe(false);
 });
 
 it("allows test checkout without production email but blocks live checkout", () => {

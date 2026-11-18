@@ -31,7 +31,7 @@ export type BuyerAccount = {
 type BuyerAccountContextValue = {
   buyer: BuyerAccount | null;
   signIn: (buyer: BuyerAccount) => void;
-  signOut: () => void;
+  signOut: () => Promise<void>;
 };
 const BuyerAccountContext = createContext<BuyerAccountContextValue | null>(null);
 const STORAGE_KEY = "otm-buyer-preview-v1";
@@ -153,12 +153,13 @@ export function BuyerAccountProvider({ children }: { children: React.ReactNode }
     () => ({
       buyer,
       signIn: setBuyer,
-      signOut: () => {
-        setBuyer(null);
+      signOut: async () => {
         if (isSupabaseConfigured()) {
+          const { error } = await createClient().auth.signOut();
+          if (error) throw error;
           clearBuyerSessionPreference();
-          void createClient().auth.signOut();
         }
+        setBuyer(null);
       },
     }),
     [buyer],

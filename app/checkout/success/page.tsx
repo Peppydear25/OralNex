@@ -393,7 +393,7 @@ export default async function CheckoutSuccessPage({
               href="/contact"
               className="font-semibold text-[#08788c] underline underline-offset-2"
             >
-              contact form
+              contact page
             </Link>
             {recorded ? " and include your order number." : "."}
           </div>

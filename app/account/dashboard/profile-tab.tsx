@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { createClient } from "../../../lib/supabase/client";
 import { isSupabaseConfigured } from "../../../lib/supabase/config";
@@ -84,7 +83,7 @@ export function ProfileTab({
     <div className="grid gap-4">
       <section className="overflow-hidden rounded-xl border border-slate-200 bg-white">
         <header className="border-b border-slate-200 px-6 py-4 max-sm:px-5">
-          <h2 className="text-lg font-semibold">Personal information</h2>
+          <h2 className="text-base font-semibold">Personal information</h2>
         </header>
         <form
           className="grid grid-cols-2 gap-4 p-6 max-sm:grid-cols-1 max-sm:p-5 [&_label]:grid [&_label]:gap-2 [&_label]:text-sm [&_label]:font-semibold [&_input]:h-12 [&_input]:min-w-0 [&_input]:rounded-lg [&_input]:border [&_input]:border-slate-300 [&_input]:px-4 [&_input]:outline-none [&_input]:transition focus-within:[&_input]:border-[#08788c] focus-within:[&_input]:ring-4 focus-within:[&_input]:ring-cyan-50"
@@ -124,23 +123,6 @@ export function ProfileTab({
             </button>
           </div>
         </form>
-      </section>
-
-      <section className="min-w-0 rounded-xl border border-slate-200 bg-white p-6 max-sm:p-5">
-        <h2 className="text-lg font-semibold">Sign-in &amp; security</h2>
-        <div className="mt-4 min-w-0">
-          <p className="text-xs font-semibold text-slate-500">Email address</p>
-          <p className="mt-1 break-all text-sm font-medium text-slate-900">{buyer.email}</p>
-        </div>
-        <div className="mt-4 flex items-center justify-between gap-4 border-t border-slate-200 pt-4">
-          <p className="text-sm font-medium text-slate-900">Password</p>
-          <Link
-            className="shrink-0 rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-semibold text-[#08788c] transition hover:border-[#08788c]"
-            href="/account/forgot-password"
-          >
-            Reset password
-          </Link>
-        </div>
       </section>
     </div>
   );

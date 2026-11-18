@@ -63,7 +63,7 @@ export function TermsContent({ companyName }: Props) {
           requires otherwise.
         </p>
         <p className="mt-4">
-          Submit questions about these Terms through the <Link href="/contact">contact form</Link>.
+          Submit questions about these Terms through the <Link href="/contact">contact page</Link>.
         </p>
       </section>
     </PolicyDocumentLayout>

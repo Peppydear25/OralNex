@@ -16,8 +16,8 @@ export function PrivacyPolicyContent({ companyName }: Props) {
         <p>
           We collect identifiers and contact details; account and authentication details; shipping,
           order, payment-status, return, and transaction details; and information submitted through
-          contact forms. We receive this information from you and, where necessary, from payment,
-          authentication, and delivery providers.
+          emails or phone calls. We receive this information from you and, where necessary, from
+          payment, authentication, and delivery providers.
         </p>
         <p className="mt-4">
           We also collect limited technical information such as IP address, browser and device type,
@@ -98,10 +98,10 @@ export function PrivacyPolicyContent({ companyName }: Props) {
           exercising a privacy right and may verify your identity before completing a request.
         </p>
         <p className="mt-4">
-          Submit a request through the <Link href="/contact">contact form</Link> and select “Privacy
-          request,” or write to {BUSINESS_ADDRESS.full}. If we deny a request, submit a “Privacy
-          appeal” through the same form and explain why you believe the decision should be
-          reconsidered. You may also contact your state attorney general where applicable.
+          Submit a privacy request through our <Link href="/contact">contact page</Link> or write to
+          {` ${BUSINESS_ADDRESS.full}`}. If we deny a request, contact us to appeal and explain why
+          you believe the decision should be reconsidered. You may also contact your state attorney
+          general where applicable.
         </p>
         <p className="mt-4">
           Account holders can update some profile and saved-address details in their account. A
@@ -118,7 +118,7 @@ export function PrivacyPolicyContent({ companyName }: Props) {
           cookies. Blocking essential storage may prevent some features from working. The store is
           not directed to children under 13, and we do not knowingly collect their personal
           information. A parent or guardian who believes a child submitted information should use
-          the contact form so we can review and delete it where appropriate.
+          our contact page so we can review and delete it where appropriate.
         </p>
       </section>
 
@@ -127,7 +127,7 @@ export function PrivacyPolicyContent({ companyName }: Props) {
         <p>
           We may update this policy to reflect legal, operational, or service changes. The revised
           date will appear above, and material changes will receive additional notice when required.
-          Submit privacy questions through the <Link href="/contact">contact form</Link> or write to
+          Submit privacy questions through the <Link href="/contact">contact page</Link> or write to
           {` ${companyName}, ${BUSINESS_ADDRESS.full}`}.
         </p>
       </section>

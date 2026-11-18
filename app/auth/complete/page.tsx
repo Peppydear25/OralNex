@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { createClient } from "../../../lib/supabase/client";
-import { safeBuyerPath } from "../../lib/navigation";
+import { authenticationDestination, safeBuyerPath } from "../../lib/navigation";
 
 export default function CompleteAuthenticationPage() {
   const started = useRef(false);
@@ -12,7 +12,10 @@ export default function CompleteAuthenticationPage() {
     const completeAuthentication = async () => {
       const query = new URLSearchParams(window.location.search);
       const fragment = new URLSearchParams(window.location.hash.slice(1));
-      const nextPath = safeBuyerPath(query.get("next"));
+      const nextPath = safeBuyerPath(
+        query.get("next"),
+        fragment.get("type") === "recovery" ? "/account/reset-password" : "/account/dashboard",
+      );
       const code = query.get("code");
       const accessToken = fragment.get("access_token");
       const refreshToken = fragment.get("refresh_token");
@@ -38,7 +41,7 @@ export default function CompleteAuthenticationPage() {
           const { data: claimsData } = await supabase.auth.getClaims();
           // This standalone callback must reload the destination's provider tree.
           window.location.replace(
-            claimsData?.claims?.user_role === "admin" ? "/admin/sign-in" : nextPath,
+            authenticationDestination(nextPath, claimsData?.claims?.user_role),
           );
           return;
         }
@@ -47,9 +50,7 @@ export default function CompleteAuthenticationPage() {
       }
 
       const { data: claimsData } = await supabase.auth.getClaims();
-      window.location.replace(
-        claimsData?.claims?.user_role === "admin" ? "/admin/sign-in" : nextPath,
-      );
+      window.location.replace(authenticationDestination(nextPath, claimsData?.claims?.user_role));
     };
 
     void completeAuthentication().catch(() => {

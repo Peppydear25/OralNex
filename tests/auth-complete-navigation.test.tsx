@@ -19,13 +19,13 @@ vi.mock("../lib/supabase/client", () => ({
 }));
 import CompleteAuthenticationPage from "../app/auth/complete/page";
 
-function start() {
+function start(search = "?code=single-use&next=/checkout", hash = "") {
   const replace = vi.fn();
   const replaceState = vi.fn();
   vi.stubGlobal("window", {
     location: {
-      search: "?code=single-use&next=/checkout",
-      hash: "",
+      search,
+      hash,
       pathname: "/auth/complete",
       replace,
     },
@@ -68,4 +68,20 @@ it("continues routing administrators through the protected sign-in page", async 
   const { effect, replace } = start();
   effect();
   await vi.waitFor(() => expect(replace).toHaveBeenCalledWith("/admin/sign-in"));
+});
+
+it.each(["buyer", "admin"])("sends %s recovery to the password reset page", async (role) => {
+  exchange.mockResolvedValue({ error: null });
+  getClaims.mockResolvedValue({ data: { claims: { user_role: role } } });
+  const { effect, replace } = start("?code=single-use&next=/account/reset-password");
+  effect();
+  await vi.waitFor(() => expect(replace).toHaveBeenCalledWith("/account/reset-password"));
+});
+
+it("routes implicit recovery to the password reset page without a next parameter", async () => {
+  setSession.mockResolvedValue({ error: null });
+  getClaims.mockResolvedValue({ data: { claims: { user_role: "admin" } } });
+  const { effect, replace } = start("", "#access_token=access&refresh_token=refresh&type=recovery");
+  effect();
+  await vi.waitFor(() => expect(replace).toHaveBeenCalledWith("/account/reset-password"));
 });

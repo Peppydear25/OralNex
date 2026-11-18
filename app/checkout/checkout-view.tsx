@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { ActionResultModal, type ActionResult } from "../components/action-result-modal";
 import { LoadingIndicator } from "../components/loading-indicator";
-import { fetchWithTimeout } from "../../lib/network/fetch-with-timeout";
+import { fetchWithTimeout, NetworkTimeoutError } from "../../lib/network/fetch-with-timeout";
 import { type ShippingAddress, useBuyerAccount } from "../data/buyer-account-store";
 import { useCart } from "../data/cart-store";
 import { useCatalog } from "../data/catalog-store";
@@ -46,7 +46,11 @@ export function CheckoutView({
   const [submitting, setSubmitting] = useState(false);
   const submittingRef = useRef(false);
   const paymentAttemptRef = useRef<string | null>(null);
-  const [shippingQuotes, setShippingQuotes] = useState<ShippingRate[] | null>(null);
+  const [quote, setQuote] = useState<{
+    cartFingerprint: string;
+    rates: ShippingRate[];
+    token?: string;
+  } | null>(null);
   const [selectedRate, setSelectedRate] = useState("");
   const [suggestedAddress, setSuggestedAddress] = useState<ShippingAddress | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
@@ -66,7 +70,7 @@ export function CheckoutView({
             : (address[name] ?? "");
     }
     setSuggestedAddress(null);
-    setShippingQuotes(null);
+    setQuote(null);
     setSelectedRate("");
     window.setTimeout(() => formRef.current?.requestSubmit(), 0);
   };
@@ -92,6 +96,7 @@ export function CheckoutView({
     0,
   );
   const cartFingerprint = JSON.stringify(cart.items);
+  const shippingQuotes = quote?.cartFingerprint === cartFingerprint ? quote.rates : null;
   const activePaymentSession =
     paymentSession?.cartFingerprint === cartFingerprint ? paymentSession : null;
   const stopSubmitting = () => {
@@ -101,7 +106,13 @@ export function CheckoutView({
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (submittingRef.current || !event.currentTarget.reportValidity()) return;
+    if (
+      submittingRef.current ||
+      activePaymentSession ||
+      (shippingQuotes && !selectedRate) ||
+      !event.currentTarget.reportValidity()
+    )
+      return;
     const data = new FormData(event.currentTarget);
     // Show feedback before saving an address or waiting for the checkout API.
     submittingRef.current = true;
@@ -140,7 +151,7 @@ export function CheckoutView({
           setResult({
             tone: "error",
             title: "Your address could not be saved",
-            message: "Please try saving your address again. No payment was started.",
+            message: "Try saving your address again. No payment was started.",
           });
           return;
         }
@@ -152,7 +163,7 @@ export function CheckoutView({
             message:
               saved.error?.message === ADDRESS_LIMIT_MESSAGE
                 ? ADDRESS_LIMIT_MESSAGE
-                : "Review the shipping address and try again before continuing.",
+                : "Check the address and try again.",
           });
           return;
         }
@@ -171,7 +182,7 @@ export function CheckoutView({
       setResult({
         tone: "error",
         title: "Online checkout is temporarily unavailable",
-        message: "No order or payment was created. Please try again later.",
+        message: "No order or payment was created. Try again later.",
       });
       return;
     }
@@ -199,6 +210,7 @@ export function CheckoutView({
           body: JSON.stringify({
             action: shippingQuotes ? "pay" : "quote",
             selectedRate: shippingQuotes ? selectedRate : undefined,
+            quoteToken: shippingQuotes ? quote?.token : undefined,
             attemptId: shippingQuotes
               ? (paymentAttemptRef.current ??= crypto.randomUUID())
               : undefined,
@@ -210,14 +222,16 @@ export function CheckoutView({
             items: checkoutItems,
           }),
         },
-        90_000,
+        shippingQuotes ? 90_000 : 300_000,
       );
       const payload = (await response.json()) as {
         rates?: ShippingRate[];
+        quoteToken?: string;
         address?: ShippingAddress;
         clientSecret?: string;
         totals?: CheckoutTotals | null;
         sessionId?: string;
+        status?: string;
         error?: string;
         code?: string;
         shippingRate?: {
@@ -229,22 +243,31 @@ export function CheckoutView({
       };
       if (payload.code === "ADDRESS_CONFIRMATION_REQUIRED" && payload.address) {
         setSuggestedAddress(payload.address);
-        setShippingQuotes(null);
+        setQuote(null);
         setSelectedRate("");
         stopSubmitting();
         return;
       }
       if (payload.code === "RATE_CHANGED") {
-        setShippingQuotes(null);
+        setQuote(payload.rates?.length ? { cartFingerprint, rates: payload.rates } : null);
         setSelectedRate("");
+        paymentAttemptRef.current = null;
       }
+      if (payload.code === "CHECKOUT_EXPIRED") paymentAttemptRef.current = null;
       if (!response.ok)
         throw new CheckoutDisplayError(checkoutErrorMessage(response.status, payload.code));
       if (!shippingQuotes) {
         if (!payload.rates?.length) throw new Error("No shipping rates were returned.");
-        setShippingQuotes(payload.rates);
-        setSelectedRate(payload.rates[0].key);
+        setQuote({ cartFingerprint, rates: payload.rates, token: payload.quoteToken });
+        setSelectedRate("");
         stopSubmitting();
+        return;
+      }
+      if (payload.status === "complete" && payload.sessionId) {
+        rememberPendingCheckout(payload.sessionId, cart.items);
+        window.location.replace(
+          `/checkout/success?session_id=${encodeURIComponent(payload.sessionId)}`,
+        );
         return;
       }
       if (!payload.clientSecret || !payload.sessionId || !payload.shippingRate)
@@ -265,11 +288,32 @@ export function CheckoutView({
         title: requestingRates
           ? "We could not check shipping rates"
           : "We could not open the payment form",
-        message: error instanceof CheckoutDisplayError ? error.message : checkoutErrorMessage(503),
+        message:
+          error instanceof NetworkTimeoutError && requestingRates
+            ? "Shipping rates are taking too long to arrive. Check your connection and try again."
+            : error instanceof CheckoutDisplayError
+              ? error.message
+              : checkoutErrorMessage(503),
       });
       stopSubmitting();
     }
   };
+
+  if (cart.items.length && rows.length !== cart.items.length)
+    return (
+      <main className="mx-auto grid min-h-[62vh] max-w-xl place-content-center px-5 text-center">
+        <h1 className="text-2xl font-semibold">Please review your cart</h1>
+        <p className="my-4 text-slate-500">
+          An item is unavailable. Update your cart before checkout.
+        </p>
+        <Link
+          className="mx-auto rounded-xl bg-[#0a8d99] px-6 py-3.5 font-bold text-white"
+          href="/cart"
+        >
+          View cart
+        </Link>
+      </main>
+    );
 
   if (!rows.length)
     return (
@@ -298,111 +342,105 @@ export function CheckoutView({
               <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#08788c]">
                 OralNex checkout
               </p>
-              <ol className="grid w-full grid-cols-3 gap-1.5" aria-label="Checkout progress">
-                <li
-                  aria-current={!activePaymentSession ? "step" : undefined}
-                  aria-label="Details"
-                  className="h-1.5 rounded-full bg-[#0a8d99]"
-                />
-                <li
-                  aria-current={activePaymentSession ? "step" : undefined}
-                  aria-label="Payment"
-                  className={`h-1.5 rounded-full ${activePaymentSession ? "bg-[#0a8d99]" : "bg-slate-200"}`}
-                />
-                <li aria-label="Confirmation" className="h-1.5 rounded-full bg-slate-200" />
-              </ol>
             </div>
             <form
               ref={formRef}
-              className={`min-w-0 gap-4 max-sm:gap-7 max-sm:pt-7 ${activePaymentSession ? "hidden" : "grid"}`}
+              className="grid min-w-0 gap-4 max-sm:gap-7 max-sm:pt-7"
               onSubmit={submit}
               onChange={(event) => {
                 if (
                   (event.nativeEvent.target as HTMLElement).getAttribute("name") !==
                   "shippingService"
                 ) {
-                  setShippingQuotes(null);
+                  setQuote(null);
                   setSelectedRate("");
                   setSuggestedAddress(null);
                 }
               }}
             >
-              <CheckoutDetailsFields
-                buyer={account.buyer}
-                savedAddress={savedAddress}
-                canSaveAddress={canSaveAddress}
-              />
-              {shippingQuotes && (
-                <section className="min-w-0 bg-white py-4">
-                  <h2 className="mb-3 text-base font-semibold">Choose shipping</h2>
-                  <div className="grid gap-2">
-                    {shippingQuotes.map((rate) => (
-                      <label
-                        key={rate.key}
-                        className="flex cursor-pointer items-center gap-3 rounded-lg border border-slate-200 p-3 text-sm has-checked:border-[#0a8d99] has-checked:bg-[#f0fafb]"
-                      >
-                        <input
-                          type="radio"
-                          name="shippingService"
-                          value={rate.key}
-                          checked={selectedRate === rate.key}
-                          onChange={() => setSelectedRate(rate.key)}
-                        />
-                        <span className="flex-1">{rate.serviceName}</span>
-                        <strong>${(rate.amountCents / 100).toFixed(2)}</strong>
-                      </label>
-                    ))}
-                  </div>
-                </section>
-              )}
-              <button
-                className="min-h-12 rounded-lg bg-[#0a8d99] px-6 text-sm font-bold text-white transition hover:bg-[#087b86] disabled:cursor-not-allowed disabled:opacity-60"
-                type="submit"
-                disabled={submitting || !paymentReady || !shippingReady}
+              <fieldset
+                disabled={Boolean(activePaymentSession) || submitting}
+                className="grid min-w-0 gap-4"
               >
-                {submitting ? (
-                  <LoadingIndicator
-                    label={
-                      shippingQuotes ? "Preparing secure payment…" : "Checking shipping rates…"
-                    }
-                  />
-                ) : paymentReady && shippingReady ? (
-                  shippingQuotes ? (
-                    "Continue to payment"
-                  ) : (
-                    "Check shipping rates"
-                  )
-                ) : (
-                  "Checkout unavailable"
+                <CheckoutDetailsFields
+                  buyer={account.buyer}
+                  savedAddress={savedAddress}
+                  canSaveAddress={canSaveAddress}
+                />
+                {shippingQuotes && (
+                  <section className="min-w-0 bg-white py-4">
+                    <h2 className="mb-3 text-base font-semibold">Choose shipping</h2>
+                    <div className="grid gap-2">
+                      {shippingQuotes.map((rate) => (
+                        <label
+                          key={rate.key}
+                          className="flex cursor-pointer items-center gap-3 rounded-lg border border-slate-200 p-3 text-sm has-checked:border-[#0a8d99] has-checked:bg-[#f0fafb]"
+                        >
+                          <input
+                            type="radio"
+                            name="shippingService"
+                            value={rate.key}
+                            required
+                            checked={selectedRate === rate.key}
+                            onChange={() => setSelectedRate(rate.key)}
+                          />
+                          <span className="flex-1">{rate.serviceName}</span>
+                          <strong>${(rate.amountCents / 100).toFixed(2)}</strong>
+                        </label>
+                      ))}
+                    </div>
+                  </section>
                 )}
-              </button>
+              </fieldset>
+              {!activePaymentSession && (
+                <button
+                  className="min-h-12 rounded-lg bg-[#0a8d99] px-6 text-sm font-bold text-white transition hover:bg-[#087b86] disabled:cursor-not-allowed disabled:opacity-60"
+                  type="submit"
+                  disabled={
+                    submitting ||
+                    !paymentReady ||
+                    !shippingReady ||
+                    Boolean(shippingQuotes && !selectedRate)
+                  }
+                >
+                  {submitting ? (
+                    <LoadingIndicator
+                      label={
+                        shippingQuotes ? "Preparing secure payment…" : "Checking shipping rates…"
+                      }
+                    />
+                  ) : paymentReady && shippingReady ? (
+                    shippingQuotes ? (
+                      "Load secure payment"
+                    ) : (
+                      "Check shipping rates"
+                    )
+                  ) : (
+                    "Checkout unavailable"
+                  )}
+                </button>
+              )}
+              {submitting && !shippingQuotes && (
+                <p className="text-center text-sm text-slate-500" role="status">
+                  Waiting for shipping methods. This may take a little longer on a slow connection.
+                </p>
+              )}
               {!paymentReady || !shippingReady ? (
                 <p className="-mt-2 text-center text-xs text-slate-500">
                   Online checkout is unavailable until payment, shipping, and order email are
                   configured. No payment will be created.
                 </p>
               ) : null}
-              <p className="text-center text-xs text-slate-500">
-                By continuing, you agree to the{" "}
-                <Link className="underline" href="/terms-of-service">
-                  Terms of Service
-                </Link>{" "}
-                and acknowledge the{" "}
-                <Link className="underline" href="/privacy-policy">
-                  Privacy Policy
-                </Link>
-                .
-              </p>
             </form>
-            {activePaymentSession && (
-              <section className="min-w-0 bg-white">
-                <div className="mb-4 flex items-center justify-between gap-3">
-                  <div>
-                    <h2 className="text-lg font-semibold leading-tight text-[#172d36]">Payment</h2>
-                    <p className="mt-1 text-[13px] text-slate-500">
-                      All transactions are secure and encrypted.
-                    </p>
-                  </div>
+            <section className="mt-8 min-w-0 border-t border-slate-200 bg-white pt-7">
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-lg font-semibold leading-tight text-[#172d36]">Payment</h2>
+                  <p className="mt-1 text-[13px] text-slate-500">
+                    All transactions are secure and encrypted.
+                  </p>
+                </div>
+                {activePaymentSession && (
                   <button
                     className="grid size-10 shrink-0 place-items-center rounded-full text-[#08788c] transition-colors hover:bg-[#e9f7f8] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#08788c]"
                     type="button"
@@ -427,13 +465,21 @@ export function CheckoutView({
                       <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L9 17l-4 1 1-4L16.5 3.5Z" />
                     </svg>
                   </button>
-                </div>
+                )}
+              </div>
+              {activePaymentSession ? (
                 <EmbeddedPayment
                   clientSecret={activePaymentSession.clientSecret}
                   publishableKey={stripePublishableKey}
+                  sessionId={activePaymentSession.sessionId}
                 />
-              </section>
-            )}
+              ) : (
+                <p className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+                  Enter your details, check shipping rates, and select a shipping method to load
+                  secure payment.
+                </p>
+              )}
+            </section>
           </div>
           <OrderSummary
             rows={rows}

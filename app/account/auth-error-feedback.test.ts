@@ -15,7 +15,7 @@ describe("getAuthErrorFeedback", () => {
   it("does not expose unknown provider errors", () => {
     expect(getAuthErrorFeedback("register", "internal_secret_error")).toEqual({
       title: "We could not create your account",
-      message: "Check your account details and connection, then try again shortly.",
+      message: "Check your details and try again.",
     });
   });
 });

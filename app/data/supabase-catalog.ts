@@ -138,16 +138,20 @@ export async function loadSupabaseCatalog(client?: SupabaseClient) {
           .order("min_quantity")
           .abortSignal(controller.signal),
       ]);
-    const error = [
-      categories,
-      products,
-      images,
-      variants,
-      features,
-      specifications,
-      bulkTiers,
-    ].find((result) => result.error)?.error;
-    if (error) return { catalog: null, error };
+    const failed = [
+      ["categories", categories],
+      ["products", products],
+      ["product_images", images],
+      ["product_variants", variants],
+      ["product_features", features],
+      ["product_specifications", specifications],
+      ["product_bulk_pricing_tiers", bulkTiers],
+    ] as const;
+    const failure = failed.find(([, result]) => result.error);
+    if (failure) {
+      const [table, result] = failure;
+      return { catalog: null, error: result.error, diagnostic: { table, status: result.status } };
+    }
     const categoryRows = (categories.data ?? []) as CategoryRow[];
     const categoryById = new Map(categoryRows.map((category) => [category.id, category]));
     const imageGroups = groupByProduct((images.data ?? []) as ImageRow[]);

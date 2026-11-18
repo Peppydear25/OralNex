@@ -40,7 +40,7 @@ export function ConnectivityStatus() {
 
   return (
     <div
-      className={`fixed inset-x-0 bottom-4 z-[250] mx-auto flex w-[calc(100%-2rem)] max-w-xl items-center justify-between gap-4 rounded-xl border px-4 py-3 text-sm shadow-xl ${
+      className={`fixed inset-x-0 bottom-4 z-[250] mx-auto flex w-fit max-w-[calc(100%-2rem)] items-center gap-3 rounded-lg border px-3 py-2 text-xs shadow-lg ${
         state === "offline"
           ? "border-amber-300 bg-amber-50 text-amber-950"
           : "border-emerald-300 bg-emerald-50 text-emerald-950"
@@ -48,17 +48,10 @@ export function ConnectivityStatus() {
       role="status"
       aria-live="polite"
     >
-      <span>
-        <strong className="block">
-          {state === "offline" ? "You’re offline" : "Connection restored"}
-        </strong>
-        {state === "offline"
-          ? "You can keep viewing this page, but checkout and form submissions need a connection."
-          : "Online actions are available again."}
-      </span>
+      <span>{state === "offline" ? "No internet connection" : "Connection restored"}</span>
       {state === "offline" ? (
         <button
-          className="shrink-0 rounded-lg border border-amber-400 bg-white px-3 py-2 font-bold"
+          className="shrink-0 rounded border border-amber-400 bg-white px-2 py-1 font-semibold"
           type="button"
           onClick={() => window.location.reload()}
         >

@@ -13,7 +13,7 @@ it("uses the configured site, not an untrusted request host", () => {
 });
 
 it("rejects a cross-site browser origin", () => {
-  const request = new Request("https://oralnex.example/api/contact", {
+  const request = new Request("https://oralnex.example/api/stripe/checkout", {
     headers: { origin: "https://attacker.example" },
   });
   expect(invalidRequestOrigin(request, "https://oralnex.example")).toBe(true);
@@ -22,7 +22,7 @@ it("rejects a cross-site browser origin", () => {
 it("fails closed without a secure production site URL", () => {
   vi.stubEnv("NODE_ENV", "production");
   vi.stubEnv("SITE_URL", "http://oralnex.example");
-  expect(trustedSiteOrigin(new Request("https://oralnex.example/api/contact"))).toBeNull();
+  expect(trustedSiteOrigin(new Request("https://oralnex.example/api/stripe/checkout"))).toBeNull();
   vi.stubEnv("SITE_URL", "");
-  expect(trustedSiteOrigin(new Request("https://oralnex.example/api/contact"))).toBeNull();
+  expect(trustedSiteOrigin(new Request("https://oralnex.example/api/stripe/checkout"))).toBeNull();
 });

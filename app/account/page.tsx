@@ -5,6 +5,7 @@ import { SiteHeader } from "../components/site-header";
 import { AccountAccessShell } from "./account-access-shell";
 import { AuthPanel } from "./auth-panel";
 import { redirectAdminFromBuyerAccount } from "./auth";
+import { safeBuyerPath } from "../lib/navigation";
 
 export const metadata: Metadata = {
   title: "Your Account",
@@ -19,7 +20,14 @@ export default async function AccountPage({
 }) {
   const { returnTo, authError } = await searchParams;
   const role = await redirectAdminFromBuyerAccount();
-  if (role === "buyer") redirect("/account/dashboard");
+  if (role === "buyer") {
+    const destination = safeBuyerPath(returnTo);
+    redirect(
+      new URL(destination, "https://local.invalid").pathname === "/account"
+        ? "/account/dashboard"
+        : destination,
+    );
+  }
 
   return (
     <>

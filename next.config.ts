@@ -37,7 +37,6 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     "/api/stripe/webhook": ["./public/logo.jpg"],
-    "/api/contact": ["./public/logo.jpg"],
   },
   poweredByHeader: false,
   redirects() {

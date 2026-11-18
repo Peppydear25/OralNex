@@ -56,7 +56,7 @@ export function validatePrelaunchConfiguration(env, mode = "staging") {
     if (env.ORDER_EMAIL_NOTIFICATIONS_ENABLED !== "true")
       issues.push("ORDER_EMAIL_NOTIFICATIONS_ENABLED must be true for launch.");
     if (!env.RESEND_API_KEY?.trim()) issues.push("RESEND_API_KEY is missing.");
-    const from = env.ORDER_EMAIL_FROM?.trim() || env.REQUEST_EMAIL_FROM?.trim() || "";
+    const from = env.ORDER_EMAIL_FROM?.trim() || "";
     const senderAddress = /<([^<>]+)>$/.exec(from)?.[1] ?? from;
     const emailAddress = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/;
     const domain = senderAddress.split("@")[1]?.toLowerCase() ?? "";

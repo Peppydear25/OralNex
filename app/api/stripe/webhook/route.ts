@@ -4,6 +4,7 @@ import { recordPaidCheckout } from "../../../../lib/stripe/record-paid-checkout"
 import { sendPaidOrderEmails } from "../../../../lib/email/order-confirmation";
 import { sendFailedPaymentEmail } from "../../../../lib/email/payment-failed";
 import { EmailDeliveryError } from "../../../../lib/email/send-with-logo";
+import { OrderEmailConfigurationError } from "../../../../lib/email/order-email-config";
 import { reportServiceFailure } from "../../../../lib/errors/report-service-failure";
 import { releaseCheckoutInventory } from "../../../../lib/stripe/inventory-reservations";
 import { readRawBody } from "../../../../lib/network/read-raw-body";
@@ -60,9 +61,11 @@ export async function POST(request: Request) {
           await sendPaidOrderEmails(recorded.order);
         } catch (error) {
           reportServiceFailure(
-            error instanceof EmailDeliveryError
-              ? `order.notification.http_${error.status}`
-              : "order.notification",
+            error instanceof OrderEmailConfigurationError
+              ? "order.notification.configuration"
+              : error instanceof EmailDeliveryError
+                ? `order.notification.http_${error.status}`
+                : "order.notification",
             error,
           );
           // Do not acknowledge undelivered mail: Stripe must retry with the same keys.

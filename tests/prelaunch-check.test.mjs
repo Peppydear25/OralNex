@@ -43,7 +43,7 @@ it("rejects a test-only sender and disabled order confirmations", () => {
       ...staging,
       ORDER_EMAIL_NOTIFICATIONS_ENABLED: "false",
       RESEND_API_KEY: "test-key",
-      REQUEST_EMAIL_FROM: "OralNex <onboarding@resend.dev>",
+      ORDER_EMAIL_FROM: "OralNex <onboarding@resend.dev>",
       ADMIN_NOTIFICATION_EMAIL: "admin@oralnex.com",
     },
     "production",

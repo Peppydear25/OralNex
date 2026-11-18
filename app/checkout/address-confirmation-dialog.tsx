@@ -34,8 +34,7 @@ export function AddressConfirmationDialog({ dialogRef, address, onUseAddress, on
             id="address-confirmation-description"
             className="mt-2 text-sm leading-6 text-slate-600"
           >
-            We found a verified version of your address. Is this where you want your order
-            delivered?
+            Is this the correct delivery address?
           </p>
           <address className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm font-medium not-italic leading-6">
             {formatAddressText(address.address1)}

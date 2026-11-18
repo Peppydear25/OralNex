@@ -4,9 +4,9 @@ import { buyerPaymentLabel, buyerPaymentStatus } from "./payment-status";
 
 export function OrderHistoryTable({ orders }: { orders: BuyerOrder[] }) {
   return (
-    <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white max-sm:overflow-visible">
+    <div className="overflow-x-auto bg-white max-sm:overflow-visible">
       <table className="w-full min-w-[620px] border-collapse text-left text-sm max-sm:block max-sm:min-w-0">
-        <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500 max-sm:sr-only">
+        <thead className="bg-slate-200 text-xs font-semibold uppercase tracking-wide text-slate-700 max-sm:sr-only">
           <tr>
             <th className="px-4 py-3" scope="col">
               Order
@@ -25,7 +25,7 @@ export function OrderHistoryTable({ orders }: { orders: BuyerOrder[] }) {
             </th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-100 max-sm:block">
+        <tbody className="divide-y divide-slate-200 max-sm:block">
           {orders.map((order) => (
             <tr
               className="align-top max-sm:grid max-sm:grid-cols-[minmax(0,1fr)_auto] max-sm:gap-x-3 max-sm:gap-y-2 max-sm:p-4"

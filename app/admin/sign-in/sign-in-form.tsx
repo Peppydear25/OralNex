@@ -43,10 +43,7 @@ export function AdminSignInForm({ signedOut = false }: { signedOut?: boolean }) 
 
     if (claimsData?.claims?.user_role !== "admin") {
       await supabase.auth.signOut();
-      fail(
-        "Administrator access denied",
-        "This account is authenticated but has not been assigned an administrator role.",
-      );
+      fail("Administrator access denied", "This account does not have admin access.");
       return;
     }
     if (aalData?.currentLevel === "aal2") {
@@ -60,7 +57,7 @@ export function AdminSignInForm({ signedOut = false }: { signedOut?: boolean }) 
       return;
     }
     if (factorsError) {
-      fail("MFA could not be loaded", "Check your connection and try signing in again.");
+      fail("MFA could not be loaded", "Check your connection and try again.");
       return;
     }
 
@@ -83,7 +80,7 @@ export function AdminSignInForm({ signedOut = false }: { signedOut?: boolean }) 
       if (error) {
         fail(
           "Previous authenticator setup could not be cleared",
-          "Sign out, sign in again, and restart authenticator setup.",
+          "Sign in again and restart setup.",
         );
         return;
       }
@@ -97,9 +94,7 @@ export function AdminSignInForm({ signedOut = false }: { signedOut?: boolean }) 
       const disabled = error.code === "mfa_totp_enroll_not_enabled";
       fail(
         disabled ? "Authenticator enrollment is disabled" : "Authenticator setup could not start",
-        disabled
-          ? "Enable TOTP enrollment in Supabase Authentication settings, then try again."
-          : "Sign out, sign in again, and retry setup.",
+        disabled ? "Enable TOTP in Supabase, then try again." : "Sign in again and retry setup.",
       );
       return;
     }
@@ -130,10 +125,7 @@ export function AdminSignInForm({ signedOut = false }: { signedOut?: boolean }) 
       password: String(data.get("password") ?? ""),
     });
     if (error) {
-      fail(
-        "Sign-in unsuccessful",
-        "The email address or password is incorrect. Check your credentials and try again.",
-      );
+      fail("Sign-in unsuccessful", "Check your email and password, then try again.");
       return;
     }
     await continueWithMfa();
@@ -149,10 +141,7 @@ export function AdminSignInForm({ signedOut = false }: { signedOut?: boolean }) 
     setPending(true);
     const { error } = await createClient().auth.mfa.challengeAndVerify({ factorId, code });
     if (error) {
-      fail(
-        "Verification unsuccessful",
-        "The authenticator code is incorrect or expired. Enter the newest code and try again.",
-      );
+      fail("Verification unsuccessful", "Enter the latest authenticator code.");
       return;
     }
     await continueWithMfa();
@@ -175,7 +164,7 @@ export function AdminSignInForm({ signedOut = false }: { signedOut?: boolean }) 
       <>
         <div className="grid min-w-0 gap-5">
           {phase === "enroll" && (
-            <div className="grid justify-items-center gap-4 rounded-xl border border-slate-200 bg-slate-50 p-5 text-center">
+            <div className="grid justify-items-center gap-4 text-center">
               {/* Supabase returns this QR code as a short-lived inline SVG data URI. */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img

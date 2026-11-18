@@ -53,6 +53,21 @@ export async function reserveCheckoutInventory(
   return String(data);
 }
 
+/** Keep Stripe's idempotent session parameters stable across retries. */
+export async function checkoutReservationExpiry(reservationId: string): Promise<number> {
+  const { data, error } = await createAdminClient()
+    .from("checkout_inventory_reservations")
+    .select("created_at")
+    .eq("id", reservationId)
+    .single();
+  if (error) throw error;
+  const createdAt = Date.parse(data?.created_at ?? "");
+  if (!Number.isFinite(createdAt))
+    throw new Error("Checkout reservation timestamp is unavailable.");
+  // Stay below Stripe's 24-hour limit while keeping the value stable on retry.
+  return Math.floor(createdAt / 1000) + 23 * 60 * 60;
+}
+
 export async function linkCheckoutInventory(
   reservationId: string,
   sessionId: string,

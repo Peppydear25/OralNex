@@ -57,3 +57,29 @@ it("serves last-good data briefly, then fails closed during a continued outage",
   vi.setSystemTime(new Date("2026-10-06T00:06:00Z"));
   expect(await getPublicCatalog()).toBeNull();
 });
+
+it("logs the failed catalog query and sanitized provider message in development", async () => {
+  vi.stubEnv("NODE_ENV", "development");
+  const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+  load.mockResolvedValue({
+    catalog: null,
+    error: {
+      code: "42703",
+      message: "column products.missing does not exist at https://example.com?key=secret",
+    },
+    diagnostic: { table: "products", status: 400 },
+  });
+  try {
+    await cached.mock.calls[0][0]("scope");
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining("table=products status=400 code=42703"),
+    );
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining("column products.missing does not exist"),
+    );
+    expect(warn.mock.calls[0][0]).not.toContain("secret");
+  } finally {
+    warn.mockRestore();
+    vi.unstubAllEnvs();
+  }
+});

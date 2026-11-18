@@ -31,8 +31,7 @@ export function AuthPanel({
       ? {
           tone: "error",
           title: "This sign-in link could not be used",
-          message:
-            "The link is invalid, expired, or has already been used. Request a new link and try again.",
+          message: "This link has expired or was used. Request a new one.",
         }
       : null,
   );
@@ -61,8 +60,8 @@ export function AuthPanel({
         title: "We could not continue",
         message:
           mode === "signin"
-            ? "Enter a valid email address and your password."
-            : "Enter a valid email address and a password containing at least twelve characters.",
+            ? "Enter your email and password."
+            : "Enter a valid email and a password of at least 12 characters.",
       });
       return;
     }
@@ -70,8 +69,7 @@ export function AuthPanel({
       setResult({
         tone: "error",
         title: "Complete your account details",
-        message:
-          "Enter your first and last name, then accept the Terms of Service before creating your account.",
+        message: "Enter your name and accept the Terms of Service.",
       });
       return;
     }
@@ -125,7 +123,7 @@ export function AuthPanel({
         setResult({
           tone: "success",
           title: "Administrator sign-in",
-          message: "Continue to securely sign in as an administrator.",
+          message: "Continue to admin sign-in.",
         });
         return;
       }
@@ -138,8 +136,7 @@ export function AuthPanel({
         setResult({
           tone: "error",
           title: "This account may already exist",
-          message:
-            "Try signing in with this email, or use Forgot password if you cannot remember the password.",
+          message: "Try signing in or resetting your password.",
         });
         return;
       }
@@ -166,7 +163,7 @@ export function AuthPanel({
     setResult({
       tone: "success",
       title: mode === "signin" ? "Welcome back" : "Your account is ready",
-      message: mode === "signin" ? "You’re signed in." : "Your account has been created.",
+      message: mode === "signin" ? "You’re signed in." : "Your account is ready.",
     });
   };
   const closeResult = () => {
@@ -176,34 +173,9 @@ export function AuthPanel({
   };
 
   return (
-    <div className="flex flex-col justify-center p-8 text-[#253138] max-sm:p-6">
+    <div className="flex flex-col justify-center px-8 text-[#253138] max-sm:px-6">
       <div className="mx-auto w-full max-w-[430px]">
-        <div
-          className="grid grid-cols-2 rounded-xl bg-slate-100 p-1"
-          role="tablist"
-          aria-label="Account options"
-        >
-          <button
-            className={`h-11 rounded-lg text-sm font-bold transition ${mode === "signin" ? "bg-white text-[#08788c] shadow-sm" : "text-slate-500 hover:text-slate-800"}`}
-            type="button"
-            role="tab"
-            aria-selected={mode === "signin"}
-            onClick={() => changeMode("signin")}
-          >
-            Sign in
-          </button>
-          <button
-            className={`h-11 rounded-lg text-sm font-bold transition ${mode === "register" ? "bg-white text-[#08788c] shadow-sm" : "text-slate-500 hover:text-slate-800"}`}
-            type="button"
-            role="tab"
-            aria-selected={mode === "register"}
-            onClick={() => changeMode("register")}
-          >
-            Create account
-          </button>
-        </div>
-
-        <header className="mb-6 mt-7">
+        <header className="mb-6">
           <h1 className="text-3xl font-semibold leading-tight">
             {mode === "signin" ? "Welcome back" : "Create your account"}
           </h1>
@@ -342,15 +314,16 @@ export function AuthPanel({
           </button>
         </form>
 
-        <div className="my-5 flex items-center gap-3 text-xs text-slate-400 before:h-px before:flex-1 before:bg-slate-200 after:h-px after:flex-1 after:bg-slate-200">
-          <span>or</span>
-        </div>
-        <Link
-          className="flex h-12 items-center justify-center rounded-xl border border-slate-300 bg-white text-sm font-bold text-slate-700 transition hover:border-[#08788c] hover:text-[#08788c]"
-          href="/shop"
-        >
-          Continue as guest
-        </Link>
+        <p className="mt-6 text-sm text-slate-600">
+          {mode === "signin" ? "Don’t have an account? " : "Already have an account? "}
+          <button
+            className="font-semibold text-[#08788c] underline underline-offset-4 hover:text-[#066678] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#08788c]"
+            type="button"
+            onClick={() => changeMode(mode === "signin" ? "register" : "signin")}
+          >
+            {mode === "signin" ? "Sign up" : "Sign in"}
+          </button>
+        </p>
       </div>
       <ActionResultModal
         result={result?.tone === "success" ? result : null}
