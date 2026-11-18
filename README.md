@@ -98,9 +98,8 @@ The Supabase-backed PostgreSQL database currently provides:
 - Persistent products, variants, categories, media, inventory, and storefront merchandising.
 - Supabase email/password buyer authentication, account profiles, and saved delivery addresses.
 - UUID-backed administrator roles with mandatory TOTP MFA for protected catalog operations.
-- RLS-protected buyer order history and administrator order/request views.
+- RLS-protected buyer order history and administrator order views.
 - Atomic, idempotent order persistence reserved for verified Stripe webhooks.
-- Server-only persistence boundaries for contact requests.
 - Cart contents are stored locally on the buyer's device.
 - Checkout is gated by configuration and recalculates prices, stock, packages, and carrier rates on the server; the browser cannot set a shipping charge. Automatic label purchase and tracking webhooks are not yet implemented.
 
@@ -115,8 +114,7 @@ Before launch, replace preview state with server-side services:
 3. On a new empty project, run `supabase/fresh/202611140002_oralnex_fresh.sql` once; on an existing project, apply only its unapplied historical migrations. Verify the schema before enabling test checkout.
 4. Recalculate prices, discounts, shipping, and stock on the server at checkout.
 5. Connect the selected carrier rates, labels, tracking, and fulfillment status updates.
-6. Verify a Resend sending domain, configure `REQUEST_EMAIL_FROM` and
-   `ADMIN_NOTIFICATION_EMAIL`, then enable `REQUEST_EMAIL_NOTIFICATIONS_ENABLED`.
+6. Verify a Resend sending domain and configure the order email settings below.
 7. Add deployment monitoring, dependency scanning, and end-to-end checkout tests.
 8. Have qualified U.S. counsel approve the legal policies and medical-equipment sales requirements.
 
@@ -126,8 +124,7 @@ Before launch, replace preview state with server-side services:
 
 The signed Stripe webhook records paid orders and sends a buyer confirmation and an admin notification through Resend.
 Set `ORDER_EMAIL_NOTIFICATIONS_ENABLED=true`, `RESEND_API_KEY`, `ADMIN_NOTIFICATION_EMAIL`, and
-`ORDER_EMAIL_FROM=OralNex Orders <orders@your-verified-domain.com>` on the deployment. If the order sender
-is omitted, `REQUEST_EMAIL_FROM` is reused. Resend's `onboarding@resend.dev` sender is restricted to testing;
+`ORDER_EMAIL_FROM=OralNex Orders <orders@your-verified-domain.com>` on the deployment. Resend's `onboarding@resend.dev` sender is restricted to testing;
 verify your own sending domain before accepting live customer orders. Stripe test-mode checkout stays
 available with a test sender and attempts buyer/admin email when notifications are enabled. For local
 testing, the verified receipt page also retries email for test payments when webhook forwarding
@@ -163,6 +160,10 @@ Run these before opening a pull request:
 pnpm check
 pnpm build
 ```
+
 # OralNex
+
+# OralNex
+
 # OralNex
 # OralNex
