@@ -1,8 +1,6 @@
 import type Stripe from "stripe";
 import { getStripe } from "../../../../lib/stripe/server";
 import { recordPaidCheckout } from "../../../../lib/stripe/record-paid-checkout";
-import { sendFailedPaymentEmail } from "../../../../lib/email/payment-failed";
-import { EmailDeliveryError } from "../../../../lib/email/send-with-logo";
 import { reportServiceFailure } from "../../../../lib/errors/report-service-failure";
 import { releaseCheckoutInventory } from "../../../../lib/stripe/inventory-reservations";
 import { readRawBody } from "../../../../lib/network/read-raw-body";
@@ -35,19 +33,6 @@ export async function POST(request: Request) {
     ) {
       const reservationId = event.data.object.metadata?.inventory_reservation_id;
       if (reservationId) await releaseCheckoutInventory(reservationId, event.data.object.id);
-    }
-    if (event.type === "checkout.session.async_payment_failed") {
-      try {
-        await sendFailedPaymentEmail(event.data.object);
-      } catch (error) {
-        reportServiceFailure(
-          error instanceof EmailDeliveryError
-            ? `payment.failed_notification.http_${error.status}`
-            : "payment.failed_notification",
-          error,
-        );
-        return new Response("Payment failure notification pending retry.", { status: 503 });
-      }
     }
     if (
       event.type === "checkout.session.completed" ||

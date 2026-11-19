@@ -2,19 +2,15 @@ import { afterEach, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 
-const { constructEvent, recordPaidCheckout, sendFailedPaymentEmail, releaseInventory } = vi.hoisted(
-  () => ({
-    constructEvent: vi.fn(),
-    recordPaidCheckout: vi.fn(),
-    sendFailedPaymentEmail: vi.fn(),
-    releaseInventory: vi.fn(),
-  }),
-);
+const { constructEvent, recordPaidCheckout, releaseInventory } = vi.hoisted(() => ({
+  constructEvent: vi.fn(),
+  recordPaidCheckout: vi.fn(),
+  releaseInventory: vi.fn(),
+}));
 vi.mock("../lib/stripe/server", () => ({
   getStripe: () => ({ webhooks: { constructEvent } }),
 }));
 vi.mock("../lib/stripe/record-paid-checkout", () => ({ recordPaidCheckout }));
-vi.mock("../lib/email/payment-failed", () => ({ sendFailedPaymentEmail }));
 vi.mock("../lib/stripe/inventory-reservations", () => ({
   releaseCheckoutInventory: releaseInventory,
 }));
@@ -85,32 +81,6 @@ it("asks Stripe to retry when recording a paid order fails", async () => {
   expect((await POST(webhookRequest())).status).toBe(500);
 });
 
-it("notifies the customer after an asynchronous payment failure without recording a paid order", async () => {
-  vi.stubEnv("STRIPE_WEBHOOK_SECRET", "whsec_test");
-  const failedSession = { id: "cs_test_failed", payment_status: "unpaid" };
-  constructEvent.mockReturnValue({
-    type: "checkout.session.async_payment_failed",
-    data: { object: failedSession },
-  });
-  sendFailedPaymentEmail.mockResolvedValueOnce({ skipped: false });
-
-  expect((await POST(webhookRequest())).status).toBe(200);
-  expect(sendFailedPaymentEmail).toHaveBeenCalledWith(failedSession);
-  expect(recordPaidCheckout).not.toHaveBeenCalled();
-});
-
-it("asks Stripe to retry when a failed-payment notice cannot be delivered", async () => {
-  vi.stubEnv("STRIPE_WEBHOOK_SECRET", "whsec_test");
-  constructEvent.mockReturnValue({
-    type: "checkout.session.async_payment_failed",
-    data: { object: { id: "cs_test_failed" } },
-  });
-  sendFailedPaymentEmail.mockRejectedValueOnce(new Error("email service unavailable"));
-
-  expect((await POST(webhookRequest())).status).toBe(503);
-  expect(recordPaidCheckout).not.toHaveBeenCalled();
-});
-
 it("releases stock once for an expired Checkout Session", async () => {
   vi.stubEnv("STRIPE_WEBHOOK_SECRET", "whsec_test");
   const expiredSession = {
@@ -129,7 +99,7 @@ it("releases stock once for an expired Checkout Session", async () => {
   expect(recordPaidCheckout).not.toHaveBeenCalled();
 });
 
-it("releases stock before notifying the buyer about an asynchronous payment failure", async () => {
+it("releases stock for an existing asynchronous payment failure", async () => {
   vi.stubEnv("STRIPE_WEBHOOK_SECRET", "whsec_test");
   const failedSession = {
     id: "cs_test_failed",
@@ -139,13 +109,21 @@ it("releases stock before notifying the buyer about an asynchronous payment fail
     type: "checkout.session.async_payment_failed",
     data: { object: failedSession },
   });
-  sendFailedPaymentEmail.mockResolvedValue({ skipped: false });
   expect((await POST(webhookRequest())).status).toBe(200);
   expect(releaseInventory).toHaveBeenCalledWith(
     failedSession.metadata.inventory_reservation_id,
     failedSession.id,
   );
-  expect(releaseInventory.mock.invocationCallOrder[0]).toBeLessThan(
-    sendFailedPaymentEmail.mock.invocationCallOrder[0],
-  );
+  expect(recordPaidCheckout).not.toHaveBeenCalled();
+});
+
+it("records an existing delayed payment after it succeeds", async () => {
+  vi.stubEnv("STRIPE_WEBHOOK_SECRET", "whsec_test");
+  const session = { id: "cs_existing", payment_status: "paid" };
+  constructEvent.mockReturnValue({
+    type: "checkout.session.async_payment_succeeded",
+    data: { object: session },
+  });
+  expect((await POST(webhookRequest())).status).toBe(200);
+  expect(recordPaidCheckout).toHaveBeenCalledWith(session);
 });

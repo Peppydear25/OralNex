@@ -114,7 +114,7 @@ Before launch, replace preview state with server-side services:
 3. On a new empty project, run `supabase/fresh/202611140002_oralnex_fresh.sql` once; on an existing project, apply only its unapplied historical migrations. Verify the schema before enabling test checkout.
 4. Recalculate prices, discounts, shipping, and stock on the server at checkout.
 5. Connect the selected carrier rates, labels, tracking, and fulfillment status updates.
-6. Enable successful-payment receipts in Stripe and configure the payment-failure email settings below.
+6. Enable successful-payment receipts in Stripe and verify card-only checkout.
 7. Add deployment monitoring, dependency scanning, and end-to-end checkout tests.
 8. Have qualified U.S. counsel approve the legal policies and medical-equipment sales requirements.
 
@@ -128,17 +128,14 @@ confirmation or administrator email; configure Stripe team payment notifications
 Stripe receipt settings and actual delivery must be verified in the Dashboard; a test checkout does not
 prove live receipt delivery.
 
-The application still sends an asynchronous payment-failure notice through Resend. Configure
-`ORDER_EMAIL_NOTIFICATIONS_ENABLED=true`, `RESEND_API_KEY`, `ADMIN_NOTIFICATION_EMAIL`, and
-`ORDER_EMAIL_FROM=OralNex Orders <orders@your-verified-domain.com>` with a verified Resend domain.
-These settings are no longer required to start checkout, but are required to deliver failure notices in
-production. Check Resend delivery logs and inboxes when testing this flow.
+New Checkout Sessions accept cards only. The webhook still handles delayed-payment success and
+failure events for sessions created before this restriction, but the application no longer sends
+payment-failure emails. Monitor any existing pending payments and contact affected customers if needed.
 
 In Stripe, deliver `checkout.session.completed`, `checkout.session.async_payment_succeeded`,
 `checkout.session.async_payment_failed`, and `checkout.session.expired` to
 `https://your-store-domain/api/stripe/webhook` and configure its matching `STRIPE_WEBHOOK_SECRET`.
 For local testing, use Stripe CLI webhook forwarding to `localhost:3000/api/stripe/webhook` and its signing secret.
-Failure-notice delivery errors return a webhook failure so Stripe can retry; the notice uses the checkout session as its idempotency key.
 After deployment, confirm the webhook endpoint is active in the same Stripe mode as checkout and
 successfully delivers a test `checkout.session.completed` event. A successful receipt page alone does
 not prove that the webhook was delivered or that Stripe sent a receipt.

@@ -49,10 +49,10 @@ export function PrivacyPolicyContent({ companyName }: Props) {
         <p>
           We disclose only the information needed by service providers that support the store,
           including Supabase for accounts and data services, Stripe for payments and tax, EasyPost
-          for address verification and shipping quotes, Resend for transactional communications, and
-          carriers or fulfillment providers needed to deliver orders. We may also disclose
-          information to professional advisers, authorities when legally required, or a successor in
-          a business transaction subject to appropriate protections.
+          for address verification and shipping quotes, and carriers or fulfillment providers needed
+          to deliver orders. We may also disclose information to professional advisers, authorities
+          when legally required, or a successor in a business transaction subject to appropriate
+          protections.
         </p>
         <p className="mt-4">
           OralNex does not sell personal information, share it for cross-context behavioral

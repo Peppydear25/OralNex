@@ -137,10 +137,6 @@ it("rejects a tampered quote before creating a payment", async () => {
 
 beforeEach(() => {
   vi.stubEnv("STRIPE_SECRET_KEY", "sk_test_checkout_idempotency");
-  vi.stubEnv("ORDER_EMAIL_NOTIFICATIONS_ENABLED", "true");
-  vi.stubEnv("RESEND_API_KEY", "test-key");
-  vi.stubEnv("ORDER_EMAIL_FROM", "OralNex <orders@oralnex.com>");
-  vi.stubEnv("ADMIN_NOTIFICATION_EMAIL", "admin@oralnex.com");
   mocks.verifyAddress.mockResolvedValue(shippingAddress);
   mocks.getUser.mockResolvedValue({ data: { user: null } });
   mocks.reserveInventory.mockResolvedValue("11111111-1111-4111-8111-111111111111");
@@ -249,6 +245,7 @@ it("charges the freshly quoted server amount and preserves the delivery address"
   expect(response.status).toBe(200);
   const stripeInput = mocks.createSession.mock.calls[0][0];
   expect(stripeInput.ui_mode).toBe("embedded_page");
+  expect(stripeInput.payment_method_types).toEqual(["card"]);
   expect(stripeInput.customer).toBe("cus_test");
   expect(stripeInput.metadata.shipping_method).toBe("USPS Ground Advantage");
   expect(stripeInput.shipping_options[0].shipping_rate_data.fixed_amount.amount).toBe(940);

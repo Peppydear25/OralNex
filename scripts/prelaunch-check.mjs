@@ -52,23 +52,6 @@ export function validatePrelaunchConfiguration(env, mode = "staging") {
   if (!env.STRIPE_WEBHOOK_SECRET?.startsWith("whsec_"))
     issues.push("STRIPE_WEBHOOK_SECRET is missing or invalid.");
 
-  if (mode === "production") {
-    if (env.ORDER_EMAIL_NOTIFICATIONS_ENABLED !== "true")
-      issues.push("ORDER_EMAIL_NOTIFICATIONS_ENABLED must be true for payment-failure notices.");
-    if (!env.RESEND_API_KEY?.trim()) issues.push("RESEND_API_KEY is missing.");
-    const from = env.ORDER_EMAIL_FROM?.trim() || "";
-    const senderAddress = /<([^<>]+)>$/.exec(from)?.[1] ?? from;
-    const emailAddress = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/;
-    const domain = senderAddress.split("@")[1]?.toLowerCase() ?? "";
-    const testDomain = ["resend.dev", "example.com", "example.net", "example.org"].some(
-      (value) => domain === value || domain.endsWith(`.${value}`),
-    );
-    if (!emailAddress.test(senderAddress) || testDomain)
-      issues.push("Payment-failure email sender must use a verified production domain.");
-    if (!emailAddress.test(env.ADMIN_NOTIFICATION_EMAIL?.trim() ?? ""))
-      issues.push("ADMIN_NOTIFICATION_EMAIL is missing or invalid.");
-  }
-
   return issues;
 }
 
