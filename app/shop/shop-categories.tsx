@@ -20,7 +20,7 @@ export function ShopCategories() {
         </h2>
         <div className="mt-4 h-1 w-12 rounded-full bg-[#0a8d99]" aria-hidden="true" />
       </div>
-      <CategoryCards collections={collections} products={products} />
+      <CategoryCards collections={collections} products={products} eagerImages={2} />
     </section>
   );
 }

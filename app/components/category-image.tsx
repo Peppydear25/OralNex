@@ -8,11 +8,13 @@ export function CategoryImage({
   alt = "",
   sizes = "(min-width: 1740px) 788px, (min-width: 640px) 48vw, 94vw",
   animate = false,
+  loading,
 }: {
   src: string;
   alt?: string;
   sizes?: string;
   animate?: boolean;
+  loading?: "eager" | "lazy";
 }) {
   const [failed, setFailed] = useState(false);
   const imageSrc = failed ? "/logo.jpg" : src;
@@ -30,6 +32,7 @@ export function CategoryImage({
       alt={alt}
       fill
       sizes={sizes}
+      loading={loading}
       unoptimized={!failed && src.startsWith("https://")}
       onError={() => setFailed(true)}
     />

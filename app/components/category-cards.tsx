@@ -6,9 +6,11 @@ import { CategoryImage } from "./category-image";
 export function CategoryCards({
   collections,
   products,
+  eagerImages = 0,
 }: {
   collections: Collection[];
   products: Product[];
+  eagerImages?: number;
 }) {
   if (collections.length === 0) {
     return (
@@ -20,7 +22,7 @@ export function CategoryCards({
 
   return (
     <div className="grid gap-5 md:grid-cols-2 md:gap-6">
-      {collections.map((category) => (
+      {collections.map((category, index) => (
         <Link
           className="home-category-card group relative isolate grid min-h-[260px] min-w-0 grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] overflow-hidden rounded-3xl border border-[#c9e5e8] text-[#172d36] no-underline transition-colors hover:border-[#08788c] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#08788c] sm:min-h-[400px]"
           href={
@@ -55,6 +57,7 @@ export function CategoryCards({
               key={category.image}
               src={category.image}
               sizes="(min-width: 1740px) 440px, (min-width: 768px) 26vw, 55vw"
+              loading={index < eagerImages ? "eager" : "lazy"}
               animate
             />
           </span>
