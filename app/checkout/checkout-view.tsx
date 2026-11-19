@@ -427,8 +427,8 @@ export function CheckoutView({
               )}
               {!paymentReady || !shippingReady ? (
                 <p className="-mt-2 text-center text-xs text-slate-500">
-                  Online checkout is unavailable until payment, shipping, and order email are
-                  configured. No payment will be created.
+                  Online checkout is unavailable until payment and shipping are configured. No
+                  payment will be created.
                 </p>
               ) : null}
             </form>

@@ -2,13 +2,6 @@ import "server-only";
 
 const emailAddress = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/;
 
-export class OrderEmailConfigurationError extends Error {
-  constructor() {
-    super("Order email configuration is incomplete.");
-    this.name = "OrderEmailConfigurationError";
-  }
-}
-
 export function orderEmailSender(env: NodeJS.ProcessEnv = process.env) {
   return env.ORDER_EMAIL_FROM?.trim() || "";
 }
@@ -27,8 +20,4 @@ export function orderEmailReady(env: NodeJS.ProcessEnv = process.env) {
     !testDomain &&
     emailAddress.test(env.ADMIN_NOTIFICATION_EMAIL?.trim() ?? "")
   );
-}
-
-export function checkoutEmailReady(env: NodeJS.ProcessEnv = process.env) {
-  return env.STRIPE_SECRET_KEY?.startsWith("sk_test_") || orderEmailReady(env);
 }

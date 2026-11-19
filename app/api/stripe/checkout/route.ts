@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { reportServiceFailure } from "../../../../lib/errors/report-service-failure";
-import { checkoutEmailReady } from "../../../../lib/email/order-email-config";
 import { allowApiRequest, rateLimitResponse } from "../../../../lib/network/api-rate-limit";
 import { readJsonBody, RequestBodyError } from "../../../../lib/network/read-json-body";
 import {
@@ -158,7 +157,7 @@ export async function POST(request: Request) {
   const origin = trustedSiteOrigin(request);
   if (!origin || request.headers.get("origin") !== origin || invalidRequestOrigin(request, origin))
     return Response.json({ error: "Invalid checkout request." }, { status: 403, headers: noStore });
-  if (!stripeIsReady() || !easypostReady() || !checkoutEmailReady())
+  if (!stripeIsReady() || !easypostReady())
     return Response.json(
       { error: "Online checkout is temporarily unavailable." },
       { status: 503, headers: noStore },

@@ -1,11 +1,7 @@
 import { expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
-import {
-  checkoutEmailReady,
-  orderEmailReady,
-  orderEmailSender,
-} from "../lib/email/order-email-config";
+import { orderEmailReady, orderEmailSender } from "../lib/email/order-email-config";
 
 const configured = {
   NODE_ENV: "test",
@@ -37,14 +33,4 @@ it("rejects a disabled email flow or a test-only sender", () => {
 
 it("requires an order sender", () => {
   expect(orderEmailReady({ ...configured, ORDER_EMAIL_FROM: "" })).toBe(false);
-});
-
-it("allows test checkout without production email but blocks live checkout", () => {
-  const testSender = {
-    ...configured,
-    ORDER_EMAIL_FROM: "OralNex <onboarding@resend.dev>",
-    STRIPE_SECRET_KEY: "sk_test_checkout",
-  };
-  expect(checkoutEmailReady(testSender)).toBe(true);
-  expect(checkoutEmailReady({ ...testSender, STRIPE_SECRET_KEY: "sk_live_checkout" })).toBe(false);
 });

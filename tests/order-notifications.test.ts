@@ -15,7 +15,6 @@ vi.mock("../lib/stripe/server", () => ({
   }),
 }));
 import { recordPaidCheckout } from "../lib/stripe/record-paid-checkout";
-import { sendPaidOrderEmails } from "../lib/email/order-confirmation";
 
 const paidSession = {
   mode: "payment",
@@ -43,7 +42,7 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-it("records taxed shipping once and sends separate buyer and administrator notifications", async () => {
+it("records taxed shipping once", async () => {
   list.mockResolvedValue({
     has_more: false,
     data: [lineItem],
@@ -70,70 +69,6 @@ it("records taxed shipping once and sends separate buyer and administrator notif
     totalCents: 12449,
     shippingAddress: { shippingMethod: "USPS Ground Advantage" },
   });
-  vi.stubEnv("ORDER_EMAIL_NOTIFICATIONS_ENABLED", "true");
-  vi.stubEnv("RESEND_API_KEY", "test-key");
-  vi.stubEnv("ORDER_EMAIL_FROM", "OralNex <orders@oralnex.com>");
-  vi.stubEnv("ADMIN_NOTIFICATION_EMAIL", "admin@oralnex.com");
-  const fetchMock = vi.fn().mockResolvedValue(new Response("{}", { status: 200 }));
-  vi.stubGlobal("fetch", fetchMock);
-  await sendPaidOrderEmails(recorded!.order);
-  const request = fetchMock.mock.calls[0][1];
-  const messages = fetchMock.mock.calls.map((call) => JSON.parse(call[1].body));
-  expect(messages.map((message: { to: string[] }) => message.to)).toEqual([
-    ["buyer@example.com"],
-    ["admin@oralnex.com"],
-  ]);
-  expect(messages[0].reply_to).toBe("admin@oralnex.com");
-  expect(messages[0].html).toContain("we're getting it ready to ship");
-  expect(messages[0].html).toContain("Your order is confirmed</h1>");
-  expect(messages[0].html).toContain("Order reference");
-  expect(messages[0].html).toContain("Qty 1");
-  expect(messages[0].html).toContain("Shipping (USPS Ground Advantage)");
-  expect(messages[0].html).toContain("Delivery address");
-  expect(messages[1].html).toContain("New paid order");
-  expect(messages[1].html).toContain("Ship to");
-  expect(messages[1].html).toContain("mailto:buyer@example.com");
-  expect(messages[0].html).not.toContain("View your account");
-  expect(messages[1].html).not.toContain("Manage order");
-  expect(messages[0].html).not.toContain("colspan");
-  expect(request.headers["Idempotency-Key"]).toBe("order-confirmed/cs_test_order/0");
-});
-
-it("attempts order email delivery for test payments with the Resend test sender", async () => {
-  vi.stubEnv("STRIPE_SECRET_KEY", "sk_test_checkout");
-  vi.stubEnv("ORDER_EMAIL_NOTIFICATIONS_ENABLED", "true");
-  vi.stubEnv("RESEND_API_KEY", "test-key");
-  vi.stubEnv("ORDER_EMAIL_FROM", "OralNex <onboarding@resend.dev>");
-  vi.stubEnv("ADMIN_NOTIFICATION_EMAIL", "admin@oralnex.com");
-  const fetchMock = vi.fn().mockResolvedValue(new Response("{}", { status: 200 }));
-  vi.stubGlobal("fetch", fetchMock);
-  await expect(
-    sendPaidOrderEmails({
-      orderNumber: "ON-TEST",
-      userId: null,
-      customerEmail: "buyer@example.com",
-      currency: "usd",
-      subtotalCents: 100,
-      shippingCents: 0,
-      taxCents: 0,
-      totalCents: 100,
-      stripeCheckoutSessionId: "cs_test_order",
-      reservationId: "11111111-1111-4111-8111-111111111111",
-      stripePaymentIntentId: "pi_test_order",
-      shippingAddress: { name: "Buyer", line1: "123 Main St", country: "US" },
-      items: [
-        {
-          productId: "product-1",
-          productName: "Gloves",
-          sku: "G1",
-          selectedOptions: {},
-          unitPriceCents: 100,
-          quantity: 1,
-        },
-      ],
-    }),
-  ).resolves.toEqual({ skipped: false });
-  expect(fetchMock).toHaveBeenCalledTimes(2);
 });
 
 it("does not record unpaid sessions", async () => {

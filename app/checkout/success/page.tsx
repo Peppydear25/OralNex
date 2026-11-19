@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import Link from "next/link";
 import { reportServiceFailure } from "../../../lib/errors/report-service-failure";
-import { sendPaidOrderEmails } from "../../../lib/email/order-confirmation";
 import { getStripe, stripeIsReady } from "../../../lib/stripe/server";
 import { canViewReceipt, receiptCookieName } from "../../../lib/stripe/receipt-access";
 import {
@@ -65,13 +64,6 @@ export default async function CheckoutSuccessPage({
         if (paid) {
           receipt = await recordPaidCheckout(session);
           recorded = true;
-          if (receipt && process.env.STRIPE_SECRET_KEY?.startsWith("sk_test_")) {
-            try {
-              await sendPaidOrderEmails(receipt.order);
-            } catch (error) {
-              reportServiceFailure("checkout.test_order_email", error);
-            }
-          }
         }
       } else {
         receiptAccessDenied = true;

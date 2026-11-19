@@ -3,7 +3,6 @@ import { CheckoutView } from "./checkout-view";
 import { CheckoutFrame } from "./checkout-frame";
 import { redirectAdminFromBuyerAccount } from "../account/auth";
 import { easypostReady } from "../../lib/shipping/easypost-rates";
-import { checkoutEmailReady } from "../../lib/email/order-email-config";
 
 export const metadata: Metadata = {
   title: "Checkout",
@@ -17,8 +16,7 @@ export default async function CheckoutPage() {
     process.env.CHECKOUT_ENABLED === "true" &&
     process.env.STRIPE_SECRET_KEY &&
     process.env.STRIPE_WEBHOOK_SECRET &&
-    process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY &&
-    checkoutEmailReady(),
+    process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
   );
   const shippingReady = easypostReady();
   return (

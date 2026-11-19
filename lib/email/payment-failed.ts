@@ -7,7 +7,7 @@ import { emailShell } from "./template";
 export async function sendFailedPaymentEmail(session: Stripe.Checkout.Session) {
   const testMode = process.env.STRIPE_SECRET_KEY?.startsWith("sk_test_");
   if (!testMode && !orderEmailReady())
-    throw new Error("Production order-email configuration is incomplete.");
+    throw new Error("Production payment-failure email configuration is incomplete.");
   if (testMode && process.env.ORDER_EMAIL_NOTIFICATIONS_ENABLED !== "true")
     return { skipped: true } as const;
 

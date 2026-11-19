@@ -114,33 +114,34 @@ Before launch, replace preview state with server-side services:
 3. On a new empty project, run `supabase/fresh/202611140002_oralnex_fresh.sql` once; on an existing project, apply only its unapplied historical migrations. Verify the schema before enabling test checkout.
 4. Recalculate prices, discounts, shipping, and stock on the server at checkout.
 5. Connect the selected carrier rates, labels, tracking, and fulfillment status updates.
-6. Verify a Resend sending domain and configure the order email settings below.
+6. Enable successful-payment receipts in Stripe and configure the payment-failure email settings below.
 7. Add deployment monitoring, dependency scanning, and end-to-end checkout tests.
 8. Have qualified U.S. counsel approve the legal policies and medical-equipment sales requirements.
 
 ## Code quality
 
-### Paid-order emails
+### Payment emails
 
-The signed Stripe webhook records paid orders and sends a buyer confirmation and an admin notification through Resend.
-Set `ORDER_EMAIL_NOTIFICATIONS_ENABLED=true`, `RESEND_API_KEY`, `ADMIN_NOTIFICATION_EMAIL`, and
-`ORDER_EMAIL_FROM=OralNex Orders <orders@your-verified-domain.com>` on the deployment. Resend's `onboarding@resend.dev` sender is restricted to testing;
-verify your own sending domain before accepting live customer orders. Stripe test-mode checkout stays
-available with a test sender and attempts buyer/admin email when notifications are enabled. For local
-testing, the verified receipt page also retries email for test payments when webhook forwarding
-is unavailable. Resend's test sender may reject recipients outside its permitted test addresses. Live
-checkout refuses to start when order email is disabled, missing, or configured with a test/placeholder
-sender. The code cannot verify DNS ownership or actual inbox delivery; check the domain status and
-delivery logs in Resend.
+Enable successful-payment receipts in the Stripe Dashboard under customer email settings. Stripe sends
+those receipts to the customer email supplied at checkout. The application no longer sends a paid-order
+confirmation or administrator email; configure Stripe team payment notifications separately if needed.
+Stripe receipt settings and actual delivery must be verified in the Dashboard; a test checkout does not
+prove live receipt delivery.
+
+The application still sends an asynchronous payment-failure notice through Resend. Configure
+`ORDER_EMAIL_NOTIFICATIONS_ENABLED=true`, `RESEND_API_KEY`, `ADMIN_NOTIFICATION_EMAIL`, and
+`ORDER_EMAIL_FROM=OralNex Orders <orders@your-verified-domain.com>` with a verified Resend domain.
+These settings are no longer required to start checkout, but are required to deliver failure notices in
+production. Check Resend delivery logs and inboxes when testing this flow.
 
 In Stripe, deliver `checkout.session.completed`, `checkout.session.async_payment_succeeded`,
 `checkout.session.async_payment_failed`, and `checkout.session.expired` to
 `https://your-store-domain/api/stripe/webhook` and configure its matching `STRIPE_WEBHOOK_SECRET`.
 For local testing, use Stripe CLI webhook forwarding to `localhost:3000/api/stripe/webhook` and its signing secret.
-Email errors return a webhook failure so Stripe can retry; the batch uses the checkout session as its idempotency key.
+Failure-notice delivery errors return a webhook failure so Stripe can retry; the notice uses the checkout session as its idempotency key.
 After deployment, confirm the webhook endpoint is active in the same Stripe mode as checkout and
 successfully delivers a test `checkout.session.completed` event. A successful receipt page alone does
-not prove that the webhook or email provider delivered a confirmation.
+not prove that the webhook was delivered or that Stripe sent a receipt.
 The inventory-reservation migration must be installed before deploying reservation-aware checkout.
 Pause checkout and let existing open Checkout Sessions finish or expire before switching to the new
 order function; sessions created by older code have no reservation ID. New sessions reserve stock
@@ -166,5 +167,7 @@ pnpm build
 # OralNex
 
 # OralNex
+
 # OralNex
+
 # OralNex

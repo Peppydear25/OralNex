@@ -37,7 +37,7 @@ it("does not print or return secret values in findings", () => {
   expect(issues.join(" ")).not.toContain("bad-secret");
 });
 
-it("rejects a test-only sender and disabled order confirmations", () => {
+it("rejects a test-only sender and disabled payment-failure notices", () => {
   const issues = validatePrelaunchConfiguration(
     {
       ...staging,
@@ -48,11 +48,15 @@ it("rejects a test-only sender and disabled order confirmations", () => {
     },
     "production",
   );
-  expect(issues).toContain("ORDER_EMAIL_NOTIFICATIONS_ENABLED must be true for launch.");
-  expect(issues).toContain("Order email sender must use a verified production domain.");
+  expect(issues).toContain(
+    "ORDER_EMAIL_NOTIFICATIONS_ENABLED must be true for payment-failure notices.",
+  );
+  expect(issues).toContain("Payment-failure email sender must use a verified production domain.");
 });
 
 it("allows test-mode staging without a production email sender", () => {
   const issues = validatePrelaunchConfiguration(staging);
-  expect(issues).not.toContain("Order email sender must use a verified production domain.");
+  expect(issues).not.toContain(
+    "Payment-failure email sender must use a verified production domain.",
+  );
 });

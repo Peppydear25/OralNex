@@ -54,7 +54,7 @@ export function validatePrelaunchConfiguration(env, mode = "staging") {
 
   if (mode === "production") {
     if (env.ORDER_EMAIL_NOTIFICATIONS_ENABLED !== "true")
-      issues.push("ORDER_EMAIL_NOTIFICATIONS_ENABLED must be true for launch.");
+      issues.push("ORDER_EMAIL_NOTIFICATIONS_ENABLED must be true for payment-failure notices.");
     if (!env.RESEND_API_KEY?.trim()) issues.push("RESEND_API_KEY is missing.");
     const from = env.ORDER_EMAIL_FROM?.trim() || "";
     const senderAddress = /<([^<>]+)>$/.exec(from)?.[1] ?? from;
@@ -64,7 +64,7 @@ export function validatePrelaunchConfiguration(env, mode = "staging") {
       (value) => domain === value || domain.endsWith(`.${value}`),
     );
     if (!emailAddress.test(senderAddress) || testDomain)
-      issues.push("Order email sender must use a verified production domain.");
+      issues.push("Payment-failure email sender must use a verified production domain.");
     if (!emailAddress.test(env.ADMIN_NOTIFICATION_EMAIL?.trim() ?? ""))
       issues.push("ADMIN_NOTIFICATION_EMAIL is missing or invalid.");
   }

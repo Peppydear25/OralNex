@@ -146,22 +146,14 @@ beforeEach(() => {
   mocks.reserveInventory.mockResolvedValue("11111111-1111-4111-8111-111111111111");
 });
 
-it("allows test checkout with a test-only order-email sender", async () => {
-  vi.stubEnv("ORDER_EMAIL_FROM", "OralNex <onboarding@resend.dev>");
+it("allows live checkout without Resend configuration", async () => {
+  vi.stubEnv("STRIPE_SECRET_KEY", "sk_live_checkout");
+  vi.stubEnv("ORDER_EMAIL_NOTIFICATIONS_ENABLED", "false");
+  vi.stubEnv("RESEND_API_KEY", "");
   mocks.prepare.mockResolvedValue({ parcels: [], lines: [] });
   mocks.quote.mockResolvedValue([rate]);
-  const response = await POST(request("quote"));
-  expect(response.status).toBe(200);
+  expect((await POST(request("quote"))).status).toBe(200);
   expect(mocks.prepare).toHaveBeenCalled();
-});
-
-it("does not start live checkout with a test-only order-email sender", async () => {
-  vi.stubEnv("STRIPE_SECRET_KEY", "sk_live_checkout");
-  vi.stubEnv("ORDER_EMAIL_FROM", "OralNex <onboarding@resend.dev>");
-  const response = await POST(request("quote"));
-  expect(response.status).toBe(503);
-  expect(mocks.prepare).not.toHaveBeenCalled();
-  expect(mocks.createSession).not.toHaveBeenCalled();
 });
 
 it("requires confirmation before rating a corrected address", async () => {

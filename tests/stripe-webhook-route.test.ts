@@ -2,32 +2,24 @@ import { afterEach, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 
-const {
-  constructEvent,
-  recordPaidCheckout,
-  sendPaidOrderEmails,
-  sendFailedPaymentEmail,
-  releaseInventory,
-} = vi.hoisted(() => ({
-  constructEvent: vi.fn(),
-  recordPaidCheckout: vi.fn(),
-  sendPaidOrderEmails: vi.fn(),
-  sendFailedPaymentEmail: vi.fn(),
-  releaseInventory: vi.fn(),
-}));
+const { constructEvent, recordPaidCheckout, sendFailedPaymentEmail, releaseInventory } = vi.hoisted(
+  () => ({
+    constructEvent: vi.fn(),
+    recordPaidCheckout: vi.fn(),
+    sendFailedPaymentEmail: vi.fn(),
+    releaseInventory: vi.fn(),
+  }),
+);
 vi.mock("../lib/stripe/server", () => ({
   getStripe: () => ({ webhooks: { constructEvent } }),
 }));
 vi.mock("../lib/stripe/record-paid-checkout", () => ({ recordPaidCheckout }));
-vi.mock("../lib/email/order-confirmation", () => ({ sendPaidOrderEmails }));
 vi.mock("../lib/email/payment-failed", () => ({ sendFailedPaymentEmail }));
 vi.mock("../lib/stripe/inventory-reservations", () => ({
   releaseCheckoutInventory: releaseInventory,
 }));
 vi.mock("../lib/errors/report-service-failure", () => ({ reportServiceFailure: vi.fn() }));
 import { POST } from "../app/api/stripe/webhook/route";
-import { OrderEmailConfigurationError } from "../lib/email/order-email-config";
-import { reportServiceFailure } from "../lib/errors/report-service-failure";
 
 function webhookRequest(body = "signed-payload") {
   return new Request("https://oralnex.example/api/stripe/webhook", {
@@ -66,7 +58,7 @@ it("does not process a failed signature", async () => {
   expect(recordPaidCheckout).not.toHaveBeenCalled();
 });
 
-it("preserves signed bytes and asks Stripe to retry a notification failure", async () => {
+it("records a paid order and acknowledges the signed event", async () => {
   vi.stubEnv("STRIPE_WEBHOOK_SECRET", "whsec_test");
   const paidSession = { id: "cs_test_paid" };
   constructEvent.mockReturnValue({
@@ -74,38 +66,23 @@ it("preserves signed bytes and asks Stripe to retry a notification failure", asy
     data: { object: paidSession },
   });
   recordPaidCheckout.mockResolvedValue({ order: { orderNumber: "ON-TEST" } });
-  sendPaidOrderEmails.mockRejectedValueOnce(new Error("email service unavailable"));
-
-  const first = await POST(webhookRequest());
-  expect(first.status).toBe(503);
+  expect((await POST(webhookRequest())).status).toBe(200);
   expect(constructEvent).toHaveBeenCalledWith(
     Buffer.from("signed-payload"),
     "valid-signature",
     "whsec_test",
   );
   expect(recordPaidCheckout).toHaveBeenCalledWith(paidSession);
-
-  sendPaidOrderEmails.mockResolvedValueOnce(undefined);
-  const retried = await POST(webhookRequest());
-  expect(retried.status).toBe(200);
-  expect(recordPaidCheckout).toHaveBeenCalledTimes(2);
-  expect(sendPaidOrderEmails).toHaveBeenCalledTimes(2);
 });
 
-it("identifies missing email configuration while retaining webhook retries", async () => {
+it("asks Stripe to retry when recording a paid order fails", async () => {
   vi.stubEnv("STRIPE_WEBHOOK_SECRET", "whsec_test");
   constructEvent.mockReturnValue({
     type: "checkout.session.completed",
     data: { object: { id: "cs_test_paid" } },
   });
-  recordPaidCheckout.mockResolvedValue({ order: { orderNumber: "ON-TEST" } });
-  sendPaidOrderEmails.mockRejectedValueOnce(new OrderEmailConfigurationError());
-
-  expect((await POST(webhookRequest())).status).toBe(503);
-  expect(reportServiceFailure).toHaveBeenCalledWith(
-    "order.notification.configuration",
-    expect.any(OrderEmailConfigurationError),
-  );
+  recordPaidCheckout.mockRejectedValueOnce(new Error("database unavailable"));
+  expect((await POST(webhookRequest())).status).toBe(500);
 });
 
 it("notifies the customer after an asynchronous payment failure without recording a paid order", async () => {
@@ -120,7 +97,6 @@ it("notifies the customer after an asynchronous payment failure without recordin
   expect((await POST(webhookRequest())).status).toBe(200);
   expect(sendFailedPaymentEmail).toHaveBeenCalledWith(failedSession);
   expect(recordPaidCheckout).not.toHaveBeenCalled();
-  expect(sendPaidOrderEmails).not.toHaveBeenCalled();
 });
 
 it("asks Stripe to retry when a failed-payment notice cannot be delivered", async () => {
