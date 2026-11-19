@@ -13,7 +13,7 @@ export function StaticHero() {
           Essential Medical Equipment
         </h1>
         <Link
-          href="/#categories"
+          href="/shop"
           className="mt-8 inline-flex min-h-13 w-fit items-center gap-6 rounded-lg bg-[#08788c] px-7 text-sm font-semibold text-white no-underline transition-colors hover:bg-[#066678] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#08788c] sm:mt-9"
         >
           Shop by category <span aria-hidden="true">&rarr;</span>
