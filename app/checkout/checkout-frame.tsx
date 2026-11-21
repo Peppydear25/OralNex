@@ -1,7 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { BUSINESS_ADDRESS } from "../../lib/business";
 
 export function CheckoutFrame({
   children,
@@ -52,25 +51,6 @@ export function CheckoutFrame({
         </div>
       </header>
       <div className="flex-1">{children}</div>
-      <footer className="border-t border-slate-200 bg-white px-4 py-6 text-xs leading-6 text-slate-500">
-        <div className="mx-auto flex max-w-[1180px] items-center justify-between gap-5 max-sm:flex-col max-sm:items-start max-sm:gap-2">
-          <p>© {new Date().getFullYear()} OralNex · Secure payment processed by Stripe</p>
-          <address className="flex items-center gap-2 text-right text-xs font-normal not-italic text-slate-700 max-sm:text-left">
-            <svg
-              className="size-5 shrink-0 text-[#08788c]"
-              aria-hidden="true"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.9"
-            >
-              <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" />
-              <circle cx="12" cy="10" r="2.5" />
-            </svg>
-            <span>{BUSINESS_ADDRESS.full}</span>
-          </address>
-        </div>
-      </footer>
     </div>
   );
 }

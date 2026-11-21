@@ -1,15 +1,20 @@
 "use client";
 
+import { usePathname } from "next/navigation";
+import { fetchWithTimeout } from "../../lib/network/fetch-with-timeout";
+import { writeHomeCatalogCache } from "./home-catalog-cache";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { readStoredJson, writeStoredJson } from "../lib/browser-storage";
 import { isSupabaseConfigured } from "../../lib/supabase/config";
 import { toError } from "../../lib/errors/to-error";
 import type { Collection, Product } from "./catalog";
 import { defaultCatalogState, sanitizeCatalogState, type CatalogState } from "./catalog-state";
-import { loadSupabaseCatalog } from "./supabase-catalog";
 import { CatalogErrorGate, CatalogLoadingGate } from "./catalog-gate";
 
 type CatalogContextValue = CatalogState & {
+  catalogLoading: boolean;
+  catalogError: boolean;
+  retryCatalog: () => void;
   saveProduct: (product: Product) => Promise<void>;
   removeProduct: (id: number) => Promise<void>;
   saveCollection: (
@@ -31,15 +36,18 @@ export function CatalogProvider({
   children: React.ReactNode;
   initialCatalog?: Partial<CatalogState>;
 }) {
+  const pathname = usePathname();
+  const homeRoute = pathname === "/";
+  const configured = isSupabaseConfigured() || process.env.NODE_ENV === "production";
   const [state, setState] = useState<CatalogState>({
-    ...defaultCatalogState,
+    ...(configured ? { products: [], collections: [] } : defaultCatalogState),
     ...initialCatalog,
   });
   const [hydrated, setHydrated] = useState(Boolean(initialCatalog));
   const [loadError, setLoadError] = useState(false);
   const [loadAttempt, setLoadAttempt] = useState(0);
-  const configured = isSupabaseConfigured();
   const refreshLiveCatalog = async () => {
+    const { loadSupabaseCatalog } = await import("./supabase-catalog");
     const { catalog, error } = await loadSupabaseCatalog();
     if (error || !catalog) throw toError(error, "The live catalog could not be loaded.");
     setState((current) => ({ ...current, ...catalog }));
@@ -48,19 +56,38 @@ export function CatalogProvider({
     if (configured) {
       if (initialCatalog) return;
       let active = true;
-      void loadSupabaseCatalog().then(({ catalog, error }) => {
-        if (!active) return;
-        if (catalog) {
-          setState((current) => ({ ...current, ...catalog }));
-          setLoadError(false);
-        } else if (error) {
-          console.warn("The live catalog could not be loaded.");
-          setLoadError(true);
+      const controller = new AbortController();
+      const load = async () => {
+        if (pathname === "/admin") {
+          const { loadSupabaseCatalog } = await import("./supabase-catalog");
+          return loadSupabaseCatalog();
         }
-        setHydrated(true);
-      });
+        const response = await fetchWithTimeout("/api/catalog", {
+          cache: loadAttempt > 0 ? "reload" : "default",
+          signal: controller.signal,
+        });
+        if (!response.ok) throw new Error("The catalog is unavailable.");
+        const catalog = sanitizeCatalogState(await response.json());
+        if (!catalog) throw new Error("The catalog could not be loaded.");
+        writeHomeCatalogCache(catalog);
+        return { catalog, error: null };
+      };
+      void load()
+        .catch(() => ({ catalog: null, error: new Error("Catalog unavailable") }))
+        .then(({ catalog, error }) => {
+          if (!active) return;
+          if (catalog) {
+            setState((current) => ({ ...current, ...catalog }));
+            setLoadError(false);
+          } else if (error) {
+            console.warn("The live catalog could not be loaded.");
+            setLoadError(true);
+          }
+          setHydrated(true);
+        });
       return () => {
         active = false;
+        controller.abort();
       };
     }
 
@@ -69,7 +96,7 @@ export function CatalogProvider({
       if (parsed) setState(parsed);
       setHydrated(true);
     });
-  }, [configured, initialCatalog, loadAttempt]);
+  }, [configured, initialCatalog, loadAttempt, pathname]);
   useEffect(() => {
     if (hydrated && !configured) {
       if (!writeStoredJson(STORAGE_KEY, state)) {
@@ -80,6 +107,13 @@ export function CatalogProvider({
   const value = useMemo<CatalogContextValue>(
     () => ({
       ...state,
+      catalogLoading: !hydrated,
+      catalogError: configured && loadError,
+      retryCatalog: () => {
+        setLoadError(false);
+        setHydrated(false);
+        setLoadAttempt((attempt) => attempt + 1);
+      },
       saveProduct: async (product) => {
         if (isSupabaseConfigured()) {
           const { saveAdminProduct } = await import("./supabase-admin-catalog");
@@ -151,10 +185,10 @@ export function CatalogProvider({
         }));
       },
     }),
-    [state],
+    [state, hydrated, configured, loadError],
   );
-  if (!hydrated) return <CatalogLoadingGate />;
-  if (configured && loadError) {
+  if (!homeRoute && !hydrated) return <CatalogLoadingGate />;
+  if (!homeRoute && configured && loadError) {
     return (
       <CatalogErrorGate
         onRetry={() => {

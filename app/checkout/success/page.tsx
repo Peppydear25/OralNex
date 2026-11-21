@@ -102,7 +102,6 @@ export default async function CheckoutSuccessPage({
   const formattedDate = confirmedAt
     ? new Intl.DateTimeFormat("en-US", {
         dateStyle: "medium",
-        timeStyle: "short",
         timeZone: "America/Chicago",
       }).format(confirmedAt)
     : null;
@@ -131,10 +130,6 @@ export default async function CheckoutSuccessPage({
               <header className="border-b border-slate-200 pb-5">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <p className="mb-1.5 inline-flex items-center gap-1.5 text-xs font-semibold text-[#08788c]">
-                      <span className="size-1.5 rounded-full bg-current" aria-hidden="true" />
-                      Payment successful
-                    </p>
                     <h1 className="text-2xl font-semibold tracking-tight">Order confirmed</h1>
                   </div>
                   <span
@@ -164,11 +159,12 @@ export default async function CheckoutSuccessPage({
                   </div>
                   <div>
                     <dt className="text-slate-500">Order date</dt>
-                    <dd className="mt-1 font-semibold">
-                      {formattedDate ? `${formattedDate} CT` : "Confirmed"}
-                    </dd>
+                    <dd className="mt-1 font-semibold">{formattedDate ?? "Confirmed"}</dd>
                   </div>
                 </dl>
+                <p className="mt-5 text-sm italic text-slate-700">
+                  A payment receipt will be emailed to you. Keep your order number for questions.
+                </p>
               </header>
 
               <section className="py-4" aria-labelledby="receipt-items">
@@ -191,9 +187,7 @@ export default async function CheckoutSuccessPage({
                                 .join(" · ")}
                             </span>
                           )}
-                          <span>
-                            Qty {item.quantity} × {money(item.unitPriceCents)}
-                          </span>
+                          <span>Qty: {item.quantity}</span>
                         </div>
                       </div>
                       <p className="shrink-0 font-semibold tabular-nums">
@@ -227,25 +221,25 @@ export default async function CheckoutSuccessPage({
                   <ReceiptRow label="Subtotal" value={money(order.subtotalCents)} />
                   <ReceiptRow label="Shipping" value={money(order.shippingCents)} />
                   <ReceiptRow label="Tax" value={money(order.taxCents)} />
-                  <ReceiptRow label="Total paid (USD)" value={money(order.totalCents)} strong />
+                  <ReceiptRow label="Total paid" value={money(order.totalCents)} strong />
                 </dl>
               </section>
               {sessionId && <ClearPaidCart sessionId={sessionId} />}
               <div className="flex flex-wrap gap-2 border-t border-slate-200 pt-4 print:hidden max-sm:grid max-sm:grid-cols-2 max-sm:gap-2.5">
+                <Link
+                  href="/shop"
+                  className="inline-flex min-h-11 items-center justify-center rounded-lg bg-[#102f38] px-4 py-2.5 text-center text-sm font-semibold text-white no-underline transition-colors hover:bg-[#0a8d99] max-sm:px-2 max-sm:text-xs"
+                >
+                  Continue shopping
+                </Link>
                 {buyerOrder && (
                   <Link
                     href="/account/dashboard"
-                    className="inline-flex min-h-11 items-center justify-center rounded-lg bg-[#102f38] px-4 py-2.5 text-center text-sm font-semibold text-white no-underline transition-colors hover:bg-[#0a8d99] max-sm:px-2 max-sm:text-xs"
+                    className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-300 px-4 py-2.5 text-center text-sm font-semibold text-[#08788c] no-underline transition-colors hover:border-[#0a8d99] hover:bg-[#f0fafb] max-sm:px-2 max-sm:text-xs"
                   >
                     View my account
                   </Link>
                 )}
-                <Link
-                  href="/shop"
-                  className={`inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-300 px-4 py-2.5 text-center text-sm font-semibold text-[#08788c] no-underline transition-colors hover:border-[#0a8d99] hover:bg-[#f0fafb] max-sm:px-2 max-sm:text-xs ${buyerOrder ? "" : "max-sm:col-span-2"}`}
-                >
-                  Continue shopping
-                </Link>
                 <Link
                   href="/contact"
                   className="self-center px-2 text-sm font-semibold text-[#08788c] underline underline-offset-2 max-sm:col-span-2 max-sm:mt-1 max-sm:justify-self-center max-sm:px-0"

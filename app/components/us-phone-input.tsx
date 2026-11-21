@@ -5,10 +5,12 @@ export function USPhoneInput({
   className = "",
   defaultValue = "",
   required = true,
+  placeholder = "2125550123",
 }: {
   className?: string;
   defaultValue?: string;
   required?: boolean;
+  placeholder?: string;
 }) {
   return (
     <span className="flex min-w-0 items-center overflow-hidden rounded-lg border border-slate-300 bg-white focus-within:border-[#0a8d99] focus-within:ring-2 focus-within:ring-[#0a8d99]/10">
@@ -24,7 +26,7 @@ export function USPhoneInput({
         type="tel"
         inputMode="numeric"
         autoComplete="tel-national"
-        placeholder="2125550123"
+        placeholder={placeholder}
         minLength={10}
         maxLength={10}
         pattern="[0-9]{10}"

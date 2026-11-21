@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { EmptyCart } from "../components/empty-cart";
 import dynamic from "next/dynamic";
 import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { ActionResultModal, type ActionResult } from "../components/action-result-modal";
@@ -315,34 +316,14 @@ export function CheckoutView({
       </main>
     );
 
-  if (!rows.length)
-    return (
-      <main className="mx-auto grid min-h-[62vh] max-w-xl place-content-center px-5 text-center">
-        <span className="mx-auto grid size-20 place-items-center rounded-3xl bg-[#e8f6f7] text-3xl text-[#08788c]">
-          □
-        </span>
-        <h1 className="mt-6 text-4xl font-semibold">Your cart is empty</h1>
-        <p className="mt-3 text-slate-500">Add gloves or masks before starting checkout.</p>
-        <Link
-          className="mx-auto mt-7 rounded-xl bg-[#0a8d99] px-6 py-3.5 font-bold text-white"
-          href="/shop"
-        >
-          Shop equipment
-        </Link>
-      </main>
-    );
+  if (!rows.length) return <EmptyCart />;
 
   return (
     <main className="relative min-w-0 overflow-x-clip bg-white px-6 py-10 text-slate-800 before:absolute before:inset-y-0 before:right-0 before:left-[calc(50%+112px)] before:bg-[#f5f5f5] max-lg:before:hidden max-sm:px-4 max-sm:py-6">
       <div className="relative mx-auto max-w-[1180px]">
         <div className="grid grid-cols-[minmax(0,1.4fr)_minmax(320px,1fr)] items-start gap-8 max-lg:grid-cols-1 max-lg:gap-5 max-sm:gap-0">
           <div className="min-w-0">
-            <div className="mb-5 w-full">
-              <h1 className="sr-only">Checkout</h1>
-              <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#08788c]">
-                OralNex checkout
-              </p>
-            </div>
+            <h1 className="sr-only">Checkout</h1>
             <form
               ref={formRef}
               className="grid min-w-0 gap-4 max-sm:gap-7 max-sm:pt-7"
@@ -413,7 +394,7 @@ export function CheckoutView({
                     shippingQuotes ? (
                       "Load secure payment"
                     ) : (
-                      "Check shipping rates"
+                      "Check shipping method"
                     )
                   ) : (
                     "Checkout unavailable"
@@ -421,7 +402,10 @@ export function CheckoutView({
                 </button>
               )}
               {submitting && !shippingQuotes && (
-                <p className="text-center text-sm text-slate-500" role="status">
+                <p
+                  className="rounded-lg bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-600"
+                  role="status"
+                >
                   Waiting for shipping methods. This may take a little longer on a slow connection.
                 </p>
               )}
@@ -435,7 +419,9 @@ export function CheckoutView({
             <section className="mt-8 min-w-0 border-t border-slate-200 bg-white pt-7">
               <div className="mb-4 flex items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-lg font-semibold leading-tight text-[#172d36]">Payment</h2>
+                  <h2 className="text-lg font-semibold leading-tight text-[#172d36] sm:text-xl">
+                    Payment
+                  </h2>
                   <p className="mt-1 text-[13px] text-slate-500">
                     All transactions are secure and encrypted.
                   </p>
@@ -474,9 +460,8 @@ export function CheckoutView({
                   sessionId={activePaymentSession.sessionId}
                 />
               ) : (
-                <p className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
-                  Enter your details, check shipping rates, and select a shipping method to load
-                  secure payment.
+                <p className="bg-slate-50 px-3 py-3 text-xs leading-5 text-slate-600">
+                  Complete your details and select shipping to continue to payment.
                 </p>
               )}
             </section>

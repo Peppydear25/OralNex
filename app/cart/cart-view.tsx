@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { EmptyCart } from "../components/empty-cart";
 import { useCart } from "../data/cart-store";
 import { useCatalog } from "../data/catalog-store";
 import { getLinePricing } from "../lib/pricing";
@@ -24,29 +25,10 @@ export function CartView() {
     0,
   );
 
-  if (!rows.length) {
-    return (
-      <main className="mx-auto grid min-h-[62vh] max-w-xl place-content-center px-5 text-center">
-        <span
-          className="mx-auto grid size-20 place-items-center rounded-3xl bg-[#e8f6f7] text-3xl text-[#08788c]"
-          aria-hidden="true"
-        >
-          □
-        </span>
-        <h1 className="mt-6 text-4xl font-semibold">Your cart is empty</h1>
-        <p className="mt-3 text-slate-500">Choose the gloves or masks needed for your order.</p>
-        <Link
-          className="mx-auto mt-7 rounded-xl bg-[#0a8d99] px-6 py-3.5 font-bold text-white"
-          href="/shop"
-        >
-          Shop equipment
-        </Link>
-      </main>
-    );
-  }
+  if (!rows.length) return <EmptyCart />;
 
   return (
-    <main className="min-w-0 bg-white px-6 py-14 max-sm:px-4 max-sm:py-6">
+    <main className="min-w-0 bg-white px-6 py-14 max-sm:px-3 max-sm:py-6">
       <div className="mx-auto w-full max-w-[1280px]">
         <header className="mb-10 text-center max-sm:mb-0">
           <h1 className="text-4xl font-medium tracking-tight text-[#172b3a] max-sm:sr-only">
@@ -169,22 +151,22 @@ export function CartView() {
           })}
         </section>
 
-        <div className="mt-10 flex justify-end max-sm:mt-10 max-sm:justify-center">
-          <div className="w-full max-w-sm text-right max-md:max-w-none">
-            <div className="flex items-center justify-between gap-6 text-lg text-[#172b3a] max-sm:justify-center max-sm:gap-5">
+        <div className="mt-10 flex justify-center">
+          <div className="w-full max-w-sm text-center">
+            <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1 text-lg text-[#172b3a]">
               <span>Subtotal</span>
               <strong className="font-semibold">${subtotal.toFixed(2)} USD</strong>
             </div>
             {savings > 0 && (
-              <p className="mt-1 text-sm text-emerald-700 max-md:text-left">
+              <p className="mt-1 text-sm text-emerald-700">
                 ${savings.toFixed(2)} volume savings included
               </p>
             )}
-            <p className="mt-2 text-sm text-slate-600 max-md:text-left max-sm:text-center">
+            <p className="mt-2 text-sm text-slate-600">
               Taxes and shipping calculated at checkout.
             </p>
             <Link
-              className="mt-7 inline-flex min-h-11 items-center justify-center rounded-full bg-[#08788c] px-7 text-sm font-semibold text-white no-underline hover:bg-[#066b7b] max-md:w-full max-sm:mx-auto max-sm:min-h-12 max-sm:max-w-[350px]"
+              className="mt-7 inline-flex min-h-12 w-full items-center justify-center rounded-full bg-[#08788c] px-5 text-sm font-semibold text-white no-underline hover:bg-[#066b7b]"
               href="/checkout"
             >
               Check out

@@ -30,14 +30,15 @@ vi.mock("../app/components/connectivity-status", () => ({ ConnectivityStatus: ()
 
 import RootLayout from "../app/layout";
 
-it.each(["/", "/admin", "/admin/sign-in", "/auth/complete"])(
+it.each(["/", "/shop", "/admin", "/admin/sign-in", "/auth/complete"])(
   "mounts only the providers needed for %s",
   async (route) => {
     pathname.value = route;
-    getPublicCatalog.mockClear();
+    getPublicCatalog.mockReset();
+    getPublicCatalog.mockResolvedValue({ products: [], collections: [] });
     const markup = renderToStaticMarkup(await RootLayout({ children: <main>Page content</main> }));
     expect(markup).toContain("Page content");
-    expect(getPublicCatalog).toHaveBeenCalledTimes(route === "/" ? 1 : 0);
+    expect(getPublicCatalog).toHaveBeenCalledTimes(route === "/shop" ? 1 : 0);
     if (route === "/admin/sign-in" || route === "/auth/complete") {
       expect(markup).not.toContain('data-provider="catalog"');
       expect(markup).not.toContain('data-provider="buyer"');
@@ -53,3 +54,12 @@ it.each(["/", "/admin", "/admin/sign-in", "/auth/complete"])(
     }
   },
 );
+
+it("does not wait for Supabase before rendering the homepage shell", async () => {
+  pathname.value = "/";
+  getPublicCatalog.mockReset();
+  getPublicCatalog.mockImplementation(() => new Promise(() => {}));
+  const markup = renderToStaticMarkup(await RootLayout({ children: <main>Homepage shell</main> }));
+  expect(markup).toContain("Homepage shell");
+  expect(getPublicCatalog).not.toHaveBeenCalled();
+});

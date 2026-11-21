@@ -6,6 +6,10 @@ export type AuthErrorFeedback = {
 };
 
 const registrationErrors: Record<string, AuthErrorFeedback> = {
+  signup_session_unavailable: {
+    title: "Account sign-in unavailable",
+    message: "We couldn’t sign you in. Please contact us for help.",
+  },
   email_exists: {
     title: "This account may already exist",
     message: "Try signing in or resetting your password.",

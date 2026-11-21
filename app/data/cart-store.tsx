@@ -79,7 +79,7 @@ export function subtractPurchasedItems(current: CartItem[], purchased: CartItem[
 }
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
-  const { products } = useCatalog();
+  const { products, catalogLoading, catalogError } = useCatalog();
   const [items, setItems] = useState<CartItem[]>([]);
   const [open, setOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
@@ -94,7 +94,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     if (hydrated) writeStoredJson(STORAGE_KEY, items);
   }, [hydrated, items]);
   useEffect(() => {
-    if (!hydrated) return;
+    if (!hydrated || catalogLoading || catalogError) return;
     const availableIds = new Set(
       products.filter((product) => product.status !== "draft").map((product) => product.id),
     );
@@ -104,7 +104,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         return valid.length === current.length ? current : valid;
       }),
     );
-  }, [hydrated, products]);
+  }, [hydrated, products, catalogLoading, catalogError]);
   const clear = useCallback(() => setItems((current) => (current.length ? [] : current)), []);
   const removePurchased = useCallback(
     (purchased: CartItem[]) => setItems((current) => subtractPurchasedItems(current, purchased)),

@@ -12,7 +12,7 @@ export function CartDrawer() {
   const cart = useCart();
   const { open, closeCart } = cart;
   const popoverRef = useRef<HTMLElement>(null);
-  const { products } = useCatalog();
+  const { products, catalogLoading, catalogError } = useCatalog();
   const rows = cart.items
     .map((item) => ({ item, product: products.find((product) => product.id === item.productId) }))
     .filter((row) => Boolean(row.product));
@@ -59,7 +59,11 @@ export function CartDrawer() {
         </button>
       </header>
       <div className="min-h-0 overflow-y-auto px-4 py-2">
-        {rows.length ? (
+        {catalogLoading || catalogError ? (
+          <p role="status" className="py-7 text-center text-sm text-slate-600">
+            {catalogLoading ? "Loading your cart…" : "Cart details are temporarily unavailable."}
+          </p>
+        ) : rows.length ? (
           <ul className="divide-y divide-slate-100">
             {rows.map(({ item, product }) =>
               product ? (
@@ -108,7 +112,7 @@ export function CartDrawer() {
         )}
       </div>
       <footer className="border-t border-slate-200 px-4 py-4">
-        {rows.length > 0 && (
+        {!catalogLoading && !catalogError && rows.length > 0 && (
           <p className="mb-3 flex items-center justify-between text-sm font-semibold text-[#172d36]">
             <span>Subtotal</span>
             <span>${subtotal.toFixed(2)}</span>
@@ -116,10 +120,10 @@ export function CartDrawer() {
         )}
         <Link
           className="flex min-h-11 items-center justify-center rounded-lg bg-[#08788c] px-4 text-sm font-semibold text-white no-underline hover:bg-[#066475]"
-          href={rows.length ? "/cart" : "/shop"}
+          href={cart.itemCount ? "/cart" : "/shop"}
           onClick={cart.closeCart}
         >
-          {rows.length ? "View cart" : "Shop products"}
+          {cart.itemCount ? "View cart" : "Shop products"}
         </Link>
         <button
           type="button"

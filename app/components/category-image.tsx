@@ -3,6 +3,22 @@
 import Image from "next/image";
 import { useState } from "react";
 
+/** Match the public storage allowlist used by Next's image optimizer. */
+export function canOptimizeCategoryImage(src: string) {
+  if (src.startsWith("/") && !src.startsWith("//")) return true;
+  try {
+    const image = new URL(src);
+    const project = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "");
+    return (
+      image.origin === project.origin &&
+      image.pathname.startsWith("/storage/v1/object/public/product-media/") &&
+      !image.search
+    );
+  } catch {
+    return false;
+  }
+}
+
 export function CategoryImage({
   src,
   alt = "",
@@ -33,7 +49,7 @@ export function CategoryImage({
       fill
       sizes={sizes}
       loading={loading}
-      unoptimized={!failed && src.startsWith("https://")}
+      unoptimized={!canOptimizeCategoryImage(imageSrc)}
       onError={() => setFailed(true)}
     />
   );

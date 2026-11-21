@@ -1,5 +1,4 @@
-import Link from "next/link";
-import { BUSINESS_ADDRESS } from "../../lib/business";
+import { BUSINESS_ADDRESS, BUSINESS_CONTACT } from "../../lib/business";
 import { PolicyDocumentLayout } from "../components/policy-document-layout";
 
 type Props = { companyName: string };
@@ -98,7 +97,8 @@ export function PrivacyPolicyContent({ companyName }: Props) {
           exercising a privacy right and may verify your identity before completing a request.
         </p>
         <p className="mt-4">
-          Submit a privacy request through our <Link href="/contact">contact page</Link> or write to
+          To make a privacy request, call{" "}
+          <a href={`tel:${BUSINESS_CONTACT.phone}`}>{BUSINESS_CONTACT.phoneDisplay}</a> or write to
           {` ${BUSINESS_ADDRESS.full}`}. If we deny a request, contact us to appeal and explain why
           you believe the decision should be reconsidered. You may also contact your state attorney
           general where applicable.
@@ -117,8 +117,8 @@ export function PrivacyPolicyContent({ companyName }: Props) {
           shopping cart. OralNex does not currently use advertising trackers or optional marketing
           cookies. Blocking essential storage may prevent some features from working. The store is
           not directed to children under 13, and we do not knowingly collect their personal
-          information. A parent or guardian who believes a child submitted information should use
-          our contact page so we can review and delete it where appropriate.
+          information. A parent or guardian who believes a child submitted information should call
+          the phone number below so we can review and delete it where appropriate.
         </p>
       </section>
 
@@ -127,7 +127,8 @@ export function PrivacyPolicyContent({ companyName }: Props) {
         <p>
           We may update this policy to reflect legal, operational, or service changes. The revised
           date will appear above, and material changes will receive additional notice when required.
-          Submit privacy questions through the <Link href="/contact">contact page</Link> or write to
+          For privacy questions, call{" "}
+          <a href={`tel:${BUSINESS_CONTACT.phone}`}>{BUSINESS_CONTACT.phoneDisplay}</a> or write to
           {` ${companyName}, ${BUSINESS_ADDRESS.full}`}.
         </p>
       </section>

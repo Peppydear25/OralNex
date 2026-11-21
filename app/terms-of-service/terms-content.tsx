@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PolicyDocumentLayout } from "../components/policy-document-layout";
+import { BUSINESS_CONTACT } from "../../lib/business";
 import { getReturnWindowDays } from "../../lib/returns";
 
 type Props = {
@@ -63,7 +64,8 @@ export function TermsContent({ companyName }: Props) {
           requires otherwise.
         </p>
         <p className="mt-4">
-          Submit questions about these Terms through the <Link href="/contact">contact page</Link>.
+          For questions about these Terms, call{" "}
+          <a href={`tel:${BUSINESS_CONTACT.phone}`}>{BUSINESS_CONTACT.phoneDisplay}</a>.
         </p>
       </section>
     </PolicyDocumentLayout>

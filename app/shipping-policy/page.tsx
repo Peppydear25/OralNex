@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { BUSINESS_CONTACT } from "../../lib/business";
 import { PolicyDocumentLayout } from "../components/policy-document-layout";
 import { SiteFooter } from "../components/site-footer";
 import { SiteHeader } from "../components/site-header";
@@ -52,9 +52,10 @@ export default function ShippingPolicyPage() {
             cannot be returned unless they arrived damaged, defective, or incorrect.
           </p>
           <p className="mt-4">
-            Start the return through the <Link href="/contact">contact page</Link> before sending
-            anything back. Include the order number, item, quantity, and reason. For damaged or
-            incorrect goods, keep the packaging and include clear photos. Follow the return
+            To start a return, call{" "}
+            <a href={`tel:${BUSINESS_CONTACT.phone}`}>{BUSINESS_CONTACT.phoneDisplay}</a> before
+            sending anything back. Have your order number, item, quantity, and reason ready. For
+            damaged or incorrect goods, keep the packaging and take clear photos. Follow the return
             instructions and address we provide; do not send returns to our business address unless
             we direct you to. Retain your return tracking information, and consider a tracked or
             insured service for valuable shipments.
@@ -63,8 +64,9 @@ export default function ShippingPolicyPage() {
         <section className="scroll-mt-8" id="damaged-items">
           <h2>Damaged, defective, or incorrect items</h2>
           <p>
-            Contact us promptly if an order arrives damaged, defective, or incorrect. Include your
-            order number and photos of the product and packaging so we can review the issue. If
+            Call <a href={`tel:${BUSINESS_CONTACT.phone}`}>{BUSINESS_CONTACT.phoneDisplay}</a>{" "}
+            promptly if an order arrives damaged, defective, or incorrect. Have your order number
+            ready and keep photos of the product and packaging so we can review the issue. If
             verified, we will arrange an appropriate replacement or refund and provide return
             instructions where needed.
           </p>
@@ -72,11 +74,11 @@ export default function ShippingPolicyPage() {
         <section className="scroll-mt-8" id="exchanges">
           <h2>Exchanges</h2>
           <p>
-            If an item arrives damaged, defective, or incorrect, contact us through the{" "}
-            <Link href="/contact">contact page</Link> so we can review a replacement or refund. For
-            a different product or option, request a return under the eligibility rules above and
-            place a new order after we confirm the return instructions. We do not offer gift credits
-            or automatic exchanges.
+            If an item arrives damaged, defective, or incorrect, call{" "}
+            <a href={`tel:${BUSINESS_CONTACT.phone}`}>{BUSINESS_CONTACT.phoneDisplay}</a> so we can
+            review a replacement or refund. For a different product or option, request a return
+            under the eligibility rules above and place a new order after we confirm the return
+            instructions. We do not offer gift credits or automatic exchanges.
           </p>
         </section>
         <section className="scroll-mt-8" id="refunds">
@@ -96,8 +98,9 @@ export default function ShippingPolicyPage() {
           </p>
           <p className="mt-4">
             If an approved refund has not appeared, first check the original payment account, then
-            contact your card issuer or bank about its posting time. If you still need help, use our{" "}
-            <Link href="/contact">contact page</Link> with your order number.
+            contact your card issuer or bank about its posting time. If you still need help, call{" "}
+            <a href={`tel:${BUSINESS_CONTACT.phone}`}>{BUSINESS_CONTACT.phoneDisplay}</a> with your
+            order number.
           </p>
         </section>
       </PolicyDocumentLayout>

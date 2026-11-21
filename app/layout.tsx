@@ -73,7 +73,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const pathname = requestHeaders.get("x-oralnex-pathname") ?? "";
   const standalone = isStandaloneRoute(pathname);
   const adminRoute = pathname === "/admin";
-  const initialCatalog = standalone || adminRoute ? null : await getPublicCatalog();
+  const homeRoute = pathname === "/";
+  const initialCatalog = standalone || adminRoute || homeRoute ? null : await getPublicCatalog();
   const organizationSchema = {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -101,7 +102,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     publisher: { "@id": `${siteUrl}/#organization` },
   };
 
-  if (!standalone && !adminRoute && !initialCatalog) {
+  if (!standalone && !adminRoute && !homeRoute && !initialCatalog) {
     return (
       <html lang="en" className={inter.variable}>
         <body>

@@ -1,14 +1,10 @@
 import Link from "next/link";
 import { StaticHero } from "./components/static-hero";
-import { CategoryCards } from "./components/category-cards";
+import { HomeCatalog } from "./components/home-catalog";
 import { SiteFooter } from "./components/site-footer";
 import { SiteHeader } from "./components/site-header";
-import { getPublicCatalog } from "./data/server-catalog";
 
-export default async function Home() {
-  const catalog = await getPublicCatalog();
-  if (!catalog) return null;
-  const { products, collections: managedCollections } = catalog;
+export default function Home() {
   return (
     <main className="homepage min-w-0 w-full overflow-x-clip">
       <SiteHeader />
@@ -39,7 +35,7 @@ export default async function Home() {
             View all categories <span aria-hidden="true">&rarr;</span>
           </Link>
         </div>
-        <CategoryCards collections={managedCollections} products={products} />
+        <HomeCatalog />
       </section>
 
       <section

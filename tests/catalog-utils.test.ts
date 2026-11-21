@@ -63,4 +63,22 @@ describe("catalog utilities", () => {
       defaultCatalogState.products.length,
     );
   });
+
+  it("preserves database product IDs when sanitizing the public catalog for checkout", () => {
+    const databaseId = "00000000-0000-4000-8000-000000000001";
+    const state = {
+      ...defaultCatalogState,
+      products: [{ ...defaultCatalogState.products[0], databaseId }],
+    };
+
+    expect(sanitizeCatalogState(JSON.parse(JSON.stringify(state)))?.products[0].databaseId).toBe(
+      databaseId,
+    );
+    expect(
+      sanitizeCatalogState({
+        ...state,
+        products: [{ ...state.products[0], databaseId: "not-a-uuid" }],
+      })?.products[0].databaseId,
+    ).toBeUndefined();
+  });
 });

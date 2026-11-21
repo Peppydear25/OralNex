@@ -26,16 +26,23 @@ export function SiteHeader() {
     : "";
   return (
     <>
-      <header className="sticky top-0 z-30 shadow-[0_2px_12px_rgba(15,45,55,.04)] border-t-2 border-t-[#08788c] border-b border-b-slate-200 bg-white">
+      <p className="m-0 flex min-h-11 items-center justify-center bg-brand-dark px-4 py-2 text-center text-sm font-semibold text-white sm:text-base">
+        Call 6462562551 to place your order
+      </p>
+      <header className="sticky top-0 z-30 shadow-[0_2px_12px_rgba(15,45,55,.04)] border-b border-b-slate-200 bg-white">
         <div className="relative mx-auto grid h-28 min-w-0 w-[calc(100%-3rem)] max-w-[1600px] grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-4 max-lg:h-24 max-sm:w-[calc(100%-2rem)]">
           <Link
             className="col-start-2 row-start-1 justify-self-center rounded-sm no-underline"
             href="/"
+            prefetch={true}
+            onNavigate={() => {
+              if (mobileMenuRef.current) mobileMenuRef.current.open = false;
+              if (cart.open) cart.closeCart();
+            }}
             aria-label="OralNex home"
           >
             <Image
               src="/logo.jpg"
-              unoptimized
               alt="OralNex"
               width={100}
               height={100}

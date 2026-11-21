@@ -168,6 +168,13 @@ function sanitizeProduct(value: unknown): Product | null {
 
   return {
     id: Number(value.id),
+    databaseId:
+      typeof value.databaseId === "string" &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+        value.databaseId,
+      )
+        ? value.databaseId
+        : undefined,
     slug: value.slug.trim(),
     name: value.name.trim().slice(0, 100),
     category: value.category.trim().slice(0, 100),

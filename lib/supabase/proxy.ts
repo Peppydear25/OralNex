@@ -8,6 +8,8 @@ export async function updateSupabaseSession(
   requestHeaders = request.headers,
 ) {
   let response = NextResponse.next({ request: { headers: requestHeaders } });
+  // This endpoint always uses an anonymous client, so session refresh only adds latency.
+  if (request.nextUrl.pathname === "/api/catalog") return response;
   if (!isSupabaseConfigured()) return response;
 
   const { url, publishableKey } = getSupabaseConfig();

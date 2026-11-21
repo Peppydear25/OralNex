@@ -62,16 +62,15 @@ export default async function ShopPage({
                   <Link
                     key={product.slug}
                     href={`/products/${product.slug}`}
-                    className="group overflow-hidden rounded-2xl border border-[#dce9eb] text-[#172d36] no-underline hover:border-[#08788c] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#08788c]"
+                    className="group flex h-full flex-col overflow-hidden rounded-xl border border-slate-200 bg-white text-[#172d36] no-underline transition-colors hover:border-[#08788c] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#08788c]"
                   >
                     <div className="relative aspect-[4/3] bg-[#f1f7f7]">
                       <CategoryImage src={product.image} alt="" />
                     </div>
-                    <div className="p-5">
-                      <h2 className="text-lg font-semibold">{product.name}</h2>
-                      <p className="mt-2 text-sm text-slate-600">{product.summary}</p>
-                      <span className="mt-4 inline-block text-sm font-semibold text-[#08788c]">
-                        View product →
+                    <div className="flex flex-1 flex-col p-4 sm:p-5">
+                      <h2 className="text-base font-medium leading-6">{product.name}</h2>
+                      <span className="mt-5 flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[#edf6f7] px-4 text-sm font-semibold text-[#08788c] transition-colors group-hover:bg-[#08788c] group-hover:text-white">
+                        View product <span aria-hidden="true">→</span>
                       </span>
                     </div>
                   </Link>

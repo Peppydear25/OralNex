@@ -5,8 +5,8 @@ import { US_STATES } from "./us-states";
 import { formatAddressText } from "./format-address-text";
 
 const fieldClass =
-  "h-12 min-w-0 w-full rounded-lg border border-slate-300 bg-[#fafcfc] px-3.5 text-sm outline-none transition placeholder:text-slate-400 hover:border-slate-400 focus:border-[#0a8d99] focus:ring-3 focus:ring-[#0a8d99]/10";
-const labelClass = "grid min-w-0 gap-1.5 text-[13px] font-medium text-slate-700";
+  "h-14 min-w-0 w-full rounded-xl border border-slate-300 bg-white px-3.5 text-sm outline-none transition placeholder:text-slate-500 hover:border-slate-400 focus:border-[#0a8d99] focus:ring-3 focus:ring-[#0a8d99]/10";
+const labelClass = "grid min-w-0 text-sm text-slate-700";
 
 export function CheckoutDetailsFields({
   buyer,
@@ -22,10 +22,7 @@ export function CheckoutDetailsFields({
       <section className="min-w-0 bg-white pb-2">
         <div className="mb-6 flex justify-between gap-5">
           <div>
-            <h2 className="text-base font-semibold">Contact information</h2>
-            <p className="mt-1 text-[13px] text-slate-500">
-              For order confirmation and delivery updates.
-            </p>
+            <h2 className="text-lg font-semibold sm:text-xl">Contact information</h2>
           </div>
           {buyer ? (
             <span
@@ -57,20 +54,22 @@ export function CheckoutDetailsFields({
           )}
         </div>
         <div className="grid grid-cols-2 gap-4 max-sm:grid-cols-1">
-          <label className={labelClass}>
-            Email address
+          <label className={`${labelClass} self-end`}>
+            <span className="sr-only">Email address</span>
             <input
               className={fieldClass}
               type="email"
               name="email"
+              placeholder="Email address"
               defaultValue={buyer?.email}
               autoComplete="email"
               required
             />
           </label>
           <label className={labelClass}>
-            Mobile phone
+            <span className="sr-only">Mobile phone</span>
             <USPhoneInput
+              placeholder="Mobile phone"
               key={buyer?.phone ?? "guest"}
               className={fieldClass}
               defaultValue={buyer?.phone}
@@ -79,23 +78,37 @@ export function CheckoutDetailsFields({
         </div>
       </section>
       <section className="min-w-0 bg-white pt-7 pb-3 max-sm:pt-6">
-        <h2 className="text-base font-semibold">Shipping address</h2>
-        <p className="mb-5 mt-1 text-[13px] text-slate-500">Where should we deliver your order?</p>
+        <h2 className="mb-5 text-lg font-semibold sm:text-xl">Delivery</h2>
         <div className="grid grid-cols-2 gap-4 max-sm:gap-3">
-          <label className={`${labelClass} col-span-2`}>
-            Country
-            <input
-              className={`${fieldClass} bg-slate-50 text-slate-600`}
-              value="United States"
-              readOnly
-              aria-readonly="true"
-            />
+          <label className="relative col-span-2 min-w-0">
+            <span className="pointer-events-none absolute left-3.5 top-2 text-xs text-slate-500">
+              Country/Region
+            </span>
+            <select
+              className={`${fieldClass} appearance-none pb-1 pr-10 pt-5`}
+              name="country"
+              autoComplete="country"
+              defaultValue="US"
+            >
+              <option value="US">United States</option>
+            </select>
+            <svg
+              className="pointer-events-none absolute right-3.5 top-1/2 size-4 -translate-y-1/2 text-slate-500"
+              viewBox="0 0 20 20"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              aria-hidden="true"
+            >
+              <path d="m6 8 4 4 4-4" />
+            </svg>
           </label>
           <label className={labelClass}>
-            First name
+            <span className="sr-only">First name</span>
             <input
               className={fieldClass}
               name="firstName"
+              placeholder="First name"
               defaultValue={savedAddress?.firstName ?? buyer?.firstName}
               autoComplete="given-name"
               maxLength={60}
@@ -103,10 +116,11 @@ export function CheckoutDetailsFields({
             />
           </label>
           <label className={labelClass}>
-            Last name
+            <span className="sr-only">Last name</span>
             <input
               className={fieldClass}
               name="lastName"
+              placeholder="Last name"
               defaultValue={savedAddress?.lastName ?? buyer?.lastName}
               autoComplete="family-name"
               maxLength={60}
@@ -114,22 +128,22 @@ export function CheckoutDetailsFields({
             />
           </label>
           <label className={`${labelClass} col-span-2`}>
-            <span>
-              Company <span className="text-xs font-normal text-slate-500">(optional)</span>
-            </span>
+            <span className="sr-only">Company (optional)</span>
             <input
               className={fieldClass}
               name="company"
+              placeholder="Company (optional)"
               defaultValue={savedAddress?.company}
               autoComplete="organization"
               maxLength={100}
             />
           </label>
           <label className={`${labelClass} col-span-2`}>
-            Street address
+            <span className="sr-only">Street address</span>
             <input
               className={fieldClass}
               name="address1"
+              placeholder="Address"
               defaultValue={formatAddressText(savedAddress?.address1)}
               autoComplete="address-line1"
               maxLength={120}
@@ -137,10 +151,11 @@ export function CheckoutDetailsFields({
             />
           </label>
           <label className={`${labelClass} col-span-2`}>
-            Apartment, suite, or unit <span className="font-normal text-slate-400">(optional)</span>
+            <span className="sr-only">Apartment, suite, etc. (optional)</span>
             <input
               className={fieldClass}
               name="address2"
+              placeholder="Apartment, suite, etc. (optional)"
               defaultValue={savedAddress?.address2}
               autoComplete="address-line2"
               maxLength={80}
@@ -148,10 +163,11 @@ export function CheckoutDetailsFields({
           </label>
           <div className="col-span-2 grid grid-cols-3 gap-3 max-sm:gap-2">
             <label className={labelClass}>
-              City
+              <span className="sr-only">City</span>
               <input
                 className={`${fieldClass} max-sm:px-2`}
                 name="city"
+                placeholder="City"
                 defaultValue={formatAddressText(savedAddress?.city)}
                 autoComplete="address-level2"
                 maxLength={80}
@@ -159,7 +175,7 @@ export function CheckoutDetailsFields({
               />
             </label>
             <label className={labelClass}>
-              State
+              <span className="sr-only">State</span>
               <select
                 className={`${fieldClass} max-sm:px-2`}
                 name="state"
@@ -167,7 +183,9 @@ export function CheckoutDetailsFields({
                 autoComplete="address-level1"
                 required
               >
-                <option value="">Select state</option>
+                <option value="" disabled>
+                  State
+                </option>
                 {US_STATES.map(([code, name]) => (
                   <option value={code} key={code}>
                     {name}
@@ -176,14 +194,14 @@ export function CheckoutDetailsFields({
               </select>
             </label>
             <label className={labelClass}>
-              ZIP code
+              <span className="sr-only">ZIP code</span>
               <input
                 className={`${fieldClass} max-sm:px-2`}
                 name="postalCode"
                 defaultValue={savedAddress?.postalCode}
                 inputMode="numeric"
                 autoComplete="postal-code"
-                placeholder="12345"
+                placeholder="ZIP code"
                 pattern="[0-9]{5}(-[0-9]{4})?"
                 title="Enter a 5-digit ZIP code or ZIP+4"
                 required

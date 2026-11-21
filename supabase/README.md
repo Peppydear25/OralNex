@@ -12,7 +12,17 @@ Supabase provides the storefront database, authentication, and product-media sto
 3. Run `supabase/verify_setup.sql` in the SQL Editor to check the schema, policies,
    functions, storage bucket, and address-limit trigger.
 4. Configure Auth site/redirect URLs, including `http://localhost:3000/auth/callback`
-   for development and your production callback URL.
+   for development and your production callback URL. Password recovery still uses
+   `/auth/complete?next=/account/reset-password`.
+   **Customer signup requires Confirm email to be disabled** in the project's
+   Authentication email provider settings. With this setting off, Supabase returns
+   an authenticated session immediately and OralNex opens the customer dashboard.
+   This is a hosted Auth setting, not a SQL migration or a frontend environment
+   variable. Apply it separately in each hosted project. If confirmation remains
+   enabled, signup will not receive a session and OralNex will show an account
+   sign-in error rather than pretending the customer is authenticated. This change
+   applies to new registrations; existing unconfirmed customers may need a separate
+   account recovery or confirmation step.
 5. Enable the `public.custom_access_token_hook` Custom Access Token hook in Supabase
    Auth. Administrator roles are stored in `public.user_roles`; admins must enroll
    in TOTP MFA. Never put administrator privileges in editable user metadata.

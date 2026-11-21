@@ -15,11 +15,10 @@ export function SiteFooter() {
                 <Image
                   className="size-24 object-contain"
                   src="/logo.jpg"
-                  unoptimized
                   alt=""
                   width={96}
                   height={96}
-                  loading="eager"
+                  loading="lazy"
                 />
               </Link>
               <p className="min-w-0 text-[13px] font-medium leading-6 text-slate-700">
@@ -64,13 +63,7 @@ export function SiteFooter() {
               </h2>
               <div className="flex flex-wrap items-center gap-2" aria-label="Card payment brands">
                 <span className="grid h-9 w-[56px] place-items-center overflow-hidden rounded-md border border-slate-200 bg-white">
-                  <Image
-                    src="/payment-visa.svg"
-                    alt="Visa"
-                    width={56}
-                    height={36}
-                    loading="eager"
-                  />
+                  <Image src="/payment-visa.svg" alt="Visa" width={56} height={36} loading="lazy" />
                 </span>
                 <span className="grid h-9 w-[56px] place-items-center overflow-hidden rounded-md border border-slate-200 bg-white">
                   <Image
@@ -78,7 +71,7 @@ export function SiteFooter() {
                     alt="Mastercard"
                     width={56}
                     height={36}
-                    loading="eager"
+                    loading="lazy"
                   />
                 </span>
                 <span className="grid h-9 w-[56px] place-items-center overflow-hidden rounded-md border border-slate-200 bg-white">
@@ -87,7 +80,7 @@ export function SiteFooter() {
                     alt="American Express"
                     width={56}
                     height={36}
-                    loading="eager"
+                    loading="lazy"
                   />
                 </span>
               </div>

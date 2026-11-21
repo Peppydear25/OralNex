@@ -9,6 +9,7 @@ import { ActionResultModal, type ActionResult } from "../components/action-resul
 import { LoadingIndicator } from "../components/loading-indicator";
 import { useBuyerAccount } from "../data/buyer-account-store";
 import { safeBuyerPath } from "../lib/navigation";
+import { registerBuyer } from "./register-buyer";
 import { getAuthErrorFeedback } from "./auth-error-feedback";
 import { setBuyerSessionPreference } from "../../lib/supabase/remember-me";
 
@@ -87,21 +88,13 @@ export function AuthPanel({
       return;
     }
 
-    {
+    try {
       const supabase = createClient();
       const response =
         mode === "signin"
           ? await supabase.auth.signInWithPassword({ email, password })
-          : await supabase.auth.signUp({
-              email,
-              password,
-              options: {
-                data: { first_name: firstName, last_name: lastName },
-                emailRedirectTo: `${window.location.origin}/auth/complete?next=/account/dashboard`,
-              },
-            });
+          : await registerBuyer(supabase.auth, { email, password, firstName, lastName });
 
-      setSubmitting(false);
       if (response.error) {
         const feedback = getAuthErrorFeedback(mode, response.error.code);
         setResult({
@@ -114,7 +107,7 @@ export function AuthPanel({
 
       if (mode === "signin") setBuyerSessionPreference(data.get("remember") === "on");
 
-      const { data: claimsData } = await supabase.auth.getClaims();
+      const claimsData = mode === "signin" ? (await supabase.auth.getClaims()).data : null;
       if (claimsData?.claims?.user_role === "admin") {
         setBuyerSessionPreference(true);
         setSubmitting(false);
@@ -128,42 +121,39 @@ export function AuthPanel({
         return;
       }
 
-      const registrationWasObfuscated =
-        mode === "register" &&
-        !response.data.session &&
-        response.data.user?.identities?.length === 0;
-      if (registrationWasObfuscated) {
-        setResult({
-          tone: "error",
-          title: "This account may already exist",
-          message: "Try signing in or resetting your password.",
-        });
-        return;
-      }
-
-      if (mode === "register" && !response.data.session) {
-        setResult({
-          tone: "success",
-          title: "Check your inbox",
-          message: "Check your email to verify your account.",
-        });
-        return;
-      }
-
       const metadata = response.data.user?.user_metadata;
       account.signIn({
         firstName: String(metadata?.first_name || firstName || "Buyer"),
         lastName: String(metadata?.last_name || lastName),
         email: response.data.user?.email ?? email,
       });
+      if (mode === "register") {
+        setBuyerSessionPreference(true);
+        setRedirectAfterResult(true);
+        setRedirectPath("/account/dashboard");
+        setResult({
+          tone: "success",
+          title: "Sign-up successful",
+          message: "You’ve successfully signed up. Your account is ready.",
+        });
+        return;
+      }
+    } catch (error) {
+      const code =
+        error && typeof error === "object" && "code" in error ? String(error.code) : undefined;
+      const feedback = getAuthErrorFeedback(mode, code);
+      setResult({ tone: "error", title: feedback.title, message: feedback.message });
+      return;
+    } finally {
+      setSubmitting(false);
     }
 
     setRedirectAfterResult(true);
     setRedirectPath(safeBuyerPath(returnTo));
     setResult({
       tone: "success",
-      title: mode === "signin" ? "Welcome back" : "Your account is ready",
-      message: mode === "signin" ? "You’re signed in." : "Your account is ready.",
+      title: "Welcome back",
+      message: "You’re signed in.",
     });
   };
   const closeResult = () => {
