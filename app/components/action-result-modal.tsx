@@ -24,16 +24,13 @@ export function ActionResultModal({
 
   useEffect(() => {
     if (!result) return;
-    const timeout = window.setTimeout(
-      () => onCloseRef.current(),
-      result.tone === "success" ? 5000 : 9000,
-    );
+    const timeout = window.setTimeout(() => onCloseRef.current(), 2000);
     return () => window.clearTimeout(timeout);
   }, [result]);
 
   if (!result || typeof document === "undefined") return null;
   const success = result.tone === "success";
-  const duration = success ? 5000 : 9000;
+  const duration = 2000;
 
   return createPortal(
     <section

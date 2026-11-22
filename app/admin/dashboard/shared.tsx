@@ -45,7 +45,7 @@ export function OperationNotice({
 }) {
   const isError = notice.tone === "error";
   useEffect(() => {
-    const timer = window.setTimeout(onClose, 3200);
+    const timer = window.setTimeout(onClose, 2000);
     return () => window.clearTimeout(timer);
   }, [onClose]);
   return (
