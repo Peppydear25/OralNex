@@ -26,9 +26,11 @@ export function SiteHeader() {
     : "";
   return (
     <>
-      <p className="m-0 flex min-h-11 items-center justify-center bg-brand-dark px-4 py-2 text-center text-sm font-semibold text-white sm:text-base">
-        Call 6462562551 to place your order
-      </p>
+      {pathname === "/" && (
+        <p className="m-0 flex min-h-8 items-center justify-center bg-brand-dark px-4 py-1 text-center text-xs font-semibold text-white sm:text-sm">
+          Call 6462562551 to place your order
+        </p>
+      )}
       <header className="sticky top-0 z-30 shadow-[0_2px_12px_rgba(15,45,55,.04)] border-b border-b-slate-200 bg-white">
         <div className="relative mx-auto grid h-28 min-w-0 w-[calc(100%-3rem)] max-w-[1600px] grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-4 max-lg:h-24 max-sm:w-[calc(100%-2rem)]">
           <Link
