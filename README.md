@@ -131,6 +131,30 @@ prove live receipt delivery.
 New Checkout Sessions accept cards only. The webhook still handles delayed-payment success and
 failure events for sessions created before this restriction, but the application no longer sends
 payment-failure emails. Monitor any existing pending payments and contact affected customers if needed.
+Remove the payment for now:
+
+## Error Type
+Runtime ChunkLoadError
+
+## Error Message
+Loading chunk app/(app)/layout failed.
+(missing: http://localhost:3000/_next/static/chunks/dd893b94ee0c9717.js)
+
+
+    at AppLayout (app/(app)/layout.tsx:7:7)
+
+## Code Frame
+   5 |   return (
+   6 |     <div className="pn-app min-h-screen bg-background">
+>  7 |       <AppHeader paymentsEnabled={paymentFeaturesEnabled()} />
+     |       ^
+   8 |       <main className="pn-app-main">{children}</main>
+   9 |     </div>
+  10 |   );
+
+Next.js version: 15.5.27 (Webpack)
+
+
 
 In Stripe, deliver `checkout.session.completed`, `checkout.session.async_payment_succeeded`,
 `checkout.session.async_payment_failed`, and `checkout.session.expired` to
@@ -158,7 +182,4 @@ Run these before opening a pull request:
 pnpm check
 pnpm build
 ```
-
-# OralNex
-
-# OralNex
+-----------
