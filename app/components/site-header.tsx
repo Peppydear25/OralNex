@@ -50,7 +50,7 @@ export function SiteHeader() {
               height={100}
               className="size-[100px] object-contain max-lg:size-20"
               loading="eager"
-              fetchPriority="high"
+              fetchPriority={pathname === "/" ? "auto" : "high"}
             />
           </Link>
           <nav

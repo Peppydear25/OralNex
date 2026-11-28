@@ -1,15 +1,35 @@
+import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
+import { Suspense } from "react";
 import { StaticHero } from "./components/static-hero";
-import { HomeCatalog } from "./components/home-catalog";
+import { CategoryCards } from "./components/category-cards";
+import { HomeBenefits } from "./components/home-benefits";
 import { SiteFooter } from "./components/site-footer";
 import { SiteHeader } from "./components/site-header";
+import { getPublicCatalog } from "./data/server-catalog";
+
+export const metadata: Metadata = {
+  title: "Nitrile Exam Gloves & Surgical Face Masks",
+  description:
+    "Shop nitrile examination gloves and disposable surgical face masks for dental practices, clinics, and everyday care at OralNex.",
+  alternates: { canonical: "/" },
+};
+
+async function HomeCategories() {
+  const catalog = await getPublicCatalog();
+  if (!catalog) {
+    return <p className="text-sm text-slate-600">Categories are temporarily unavailable.</p>;
+  }
+  return <CategoryCards collections={catalog.collections} products={catalog.products} />;
+}
 
 export default function Home() {
   return (
     <main className="homepage min-w-0 w-full overflow-x-clip">
       <SiteHeader />
 
-      <section className="w-full overflow-hidden" aria-label="Featured medical equipment">
+      <section className="w-full overflow-hidden" aria-label="Shop nitrile gloves and face masks">
         <StaticHero />
       </section>
 
@@ -35,7 +55,43 @@ export default function Home() {
             View all categories <span aria-hidden="true">&rarr;</span>
           </Link>
         </div>
-        <HomeCatalog />
+        <Suspense fallback={<p className="text-sm text-slate-600">Loading categories…</p>}>
+          <HomeCategories />
+        </Suspense>
+      </section>
+
+      <HomeBenefits />
+
+      <section
+        className="home-container my-12 grid items-center gap-7 sm:my-16 lg:grid-cols-2 lg:gap-12"
+        aria-labelledby="featured-gloves-title"
+      >
+        <div className="overflow-hidden rounded-2xl bg-[#eaf5f6]">
+          <Image
+            src="/Glove1.jpg"
+            alt="OralNex nitrile exam gloves packaging artwork"
+            width={1600}
+            height={666}
+            sizes="(min-width: 1024px) 50vw, 100vw"
+            className="aspect-[16/9] w-full object-cover object-center"
+          />
+        </div>
+        <div className="max-w-[540px]">
+          <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#08788c]">
+            OralNex
+          </p>
+          <h2
+            id="featured-gloves-title"
+            className="mt-2 text-2xl font-semibold leading-tight text-[#172d36] sm:text-3xl"
+          >
+            Nitrile Exam Gloves
+          </h2>
+          <p className="mt-4 text-sm leading-6 text-slate-600 sm:text-base sm:leading-7">
+            Black OralNex nitrile exam gloves are single-use, powder-free, non-sterile, and
+            latex-free, offering an ambidextrous fit with reliable sensitivity and protection for
+            routine exams and general care.
+          </p>
+        </div>
       </section>
 
       <section
@@ -54,11 +110,12 @@ export default function Home() {
             id="about-oral-nex-title"
             className="text-[clamp(1.875rem,3.2vw,3rem)] font-semibold leading-[1.15] tracking-tight text-[#172d36]"
           >
-            Outlasting the <span className="text-[#08788c]">Middleman.</span>
+            Outlasting the <span className="text-[#08788c]">middle man.</span>
           </h2>
           <p className="mx-auto mt-5 max-w-[52ch] text-sm leading-6 text-slate-600 sm:text-base sm:leading-7">
-            A more direct way to get dental and medical essentials, with clear choices and fewer
-            obstacles.
+            OralNex makes it straightforward to shop nitrile exam gloves and disposable surgical
+            face masks for dental practices, clinics, and everyday care. Compare product details and
+            box quantities before you order.
           </p>
           <Link
             href="/about"

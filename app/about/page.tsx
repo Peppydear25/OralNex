@@ -4,9 +4,9 @@ import { SiteHeader } from "../components/site-header";
 import { AboutContent } from "./about-content";
 
 export const metadata: Metadata = {
-  title: "About Our Dental & Medical Supply Store",
+  title: "About OralNex | Nitrile Gloves & Surgical Face Masks",
   description:
-    "Learn how OralNex supplies dental and medical essentials, including nitrile examination gloves and surgical face masks.",
+    "Learn about OralNex, an online store for nitrile examination gloves and disposable surgical face masks. Explore our products, ordering details, and customer support.",
   alternates: { canonical: "/about" },
 };
 

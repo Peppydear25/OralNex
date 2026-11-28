@@ -1,85 +1,93 @@
 import Link from "next/link";
 
+const textLink =
+  "font-semibold text-[#08788c] underline decoration-[#87c9d1] underline-offset-4 hover:text-[#066678]";
+
 export function AboutContent() {
   return (
-    <main className="min-w-0 overflow-x-clip bg-white px-5 pb-20 pt-14 text-[#35434b] max-sm:px-4 max-sm:pb-14 max-sm:pt-10 sm:pt-20">
-      <div className="mx-auto min-w-0 max-w-[1050px]">
-        <header className="mb-12 text-center max-sm:mb-9">
-          <h1 className="text-3xl font-semibold tracking-tight leading-tight text-[#253138]">
+    <main className="min-w-0 bg-white px-4 pb-20 pt-12 text-[15px] leading-[1.85] text-[#172d36] sm:px-6 sm:pb-24 sm:pt-20">
+      <div className="mx-auto max-w-[1050px]">
+        <header className="max-w-[760px]">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#08788c]">
             About OralNex
+          </p>
+          <h1 className="mt-4 text-3xl font-semibold leading-tight tracking-tight">
+            A simpler way to shop gloves and face masks
           </h1>
-          <p className="mt-4 text-sm font-medium tracking-[.08em] text-[#08788c]">
-            Outlasting the Middleman
+          <p className="mt-6 text-slate-600">
+            OralNex is an online store focused on nitrile examination gloves and disposable surgical
+            face masks. We make product details, quantities, and ordering steps easier to understand
+            for dental practices, clinics, workplaces, and everyday shoppers.
           </p>
         </header>
 
-        <article className="min-w-0 text-[15px] leading-[1.85] text-slate-600 [overflow-wrap:anywhere] [&>section]:mt-10 [&>section:first-of-type]:mt-0 [&_h2]:mb-3 [&_h2]:text-lg [&_h2]:font-semibold [&_h2]:uppercase [&_h2]:tracking-[.06em] [&_h2]:leading-snug [&_h2]:text-[#253138] max-sm:[&_h2]:text-base">
-          <section aria-labelledby="about-overview">
-            <h2 id="about-overview">Overview</h2>
-            <p>
-              OralNex brings everyday dental and medical supplies into one straightforward place to
-              shop. We offer nitrile examination gloves and disposable surgical face masks for
-              practices, workplaces, and individuals who need to keep essential supplies close at
-              hand. Our focus is on making it easier to see what you are buying, choose the right
-              option, and place an order with confidence.
-            </p>
-          </section>
-
-          <section aria-labelledby="about-motto">
-            <h2 id="about-motto">Outlasting the Middleman</h2>
-            <p>
-              Our motto speaks to the kind of shopping experience we want to build: one with less
-              unnecessary friction between the customer and the supplies they need. Rather than
-              making you work through unclear listings or confusing order quantities, we aim to
-              present useful product details and pricing plainly. You can review your choices and
-              the delivery charge before completing your purchase.
-            </p>
-            <p className="mt-4">
-              For us, this is about earning trust through clarity and consistency. Whether you are
-              ordering one box or restocking for a busy team, the process should feel manageable
-              from product selection through checkout.
-            </p>
-          </section>
-
+        <div className="mt-12 grid gap-10 border-t border-slate-200 pt-12 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:gap-16 sm:mt-16 sm:pt-16">
           <section aria-labelledby="about-products">
-            <h2 id="about-products">Care in the details</h2>
-            <p>
-              Choosing supplies for a practice, workplace, or everyday care should start with
-              reliable information. Our catalog focuses on gloves and masks, with available options,
-              product specifications, and pieces per box shown on each product page. That helps you
-              check what fits your needs before you buy.
-            </p>
-          </section>
-
-          <section aria-labelledby="about-service">
-            <h2 id="about-service">Here for our customers</h2>
-            <p>
-              Good service means making the next step clear. You can see box quantities and volume
-              prices before adding an item to your cart, then review delivery options and the full
-              amount before payment. If something about a product, order, or delivery needs
-              attention, you can reach our team by phone.
-            </p>
-            <p className="mt-4">
-              Have a question?{" "}
-              <Link
-                href="/contact"
-                className="font-medium text-[#08788c] underline underline-offset-2"
-              >
-                Contact us
+            <h2 id="about-products" className="text-base font-semibold sm:text-lg">
+              What we sell
+            </h2>
+            <p className="mt-4 text-slate-600">
+              Our catalog centers on disposable gloves and face masks. Browse{" "}
+              <Link href="/shop?category=gloves" className={textLink}>
+                nitrile exam gloves
               </Link>{" "}
-              and we’ll be glad to help.
+              for available sizes and colors, or explore{" "}
+              <Link href="/shop?category=masks" className={textLink}>
+                surgical face masks
+              </Link>
+              . Each product page shows its current options, specifications, and packaging details
+              so you can choose what fits your needs.
             </p>
           </section>
 
-          <section aria-labelledby="about-improvement">
-            <h2 id="about-improvement">Always improving</h2>
-            <p>
-              We keep refining how customers find product details, choose the right quantity, and
-              complete an order. Questions and feedback help us spot what could be clearer. Our goal
-              is a shopping experience that stays straightforward as customer needs change.
+          <section aria-labelledby="about-shopping">
+            <h2 id="about-shopping" className="text-base font-semibold sm:text-lg">
+              How shopping works
+            </h2>
+            <p className="mt-4 text-slate-600">
+              Review the product information and available quantities before adding items to your
+              cart. At checkout, you can review your order, delivery options, and total before
+              payment. Available volume pricing is shown where it applies.
+            </p>
+            <p className="mt-4 text-slate-600">
+              For processing times, delivery, and eligible returns, read our{" "}
+              <Link href="/shipping-policy" className={textLink}>
+                shipping and returns policy
+              </Link>
+              .
             </p>
           </section>
-        </article>
+        </div>
+
+        <section
+          className="mt-12 rounded-2xl bg-[#eef7f8] px-6 py-8 sm:mt-16 sm:px-10 sm:py-10"
+          aria-labelledby="about-approach"
+        >
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#08788c]">
+            Outlasting the middle man
+          </p>
+          <h2 id="about-approach" className="mt-3 text-base font-semibold sm:text-lg">
+            Clear choices, from product page to checkout
+          </h2>
+          <p className="mt-4 max-w-[75ch] text-slate-600">
+            Our motto reflects the experience we want to offer: fewer confusing steps between you
+            and the supplies you need. We focus on useful product information, visible order
+            quantities, and a checkout where you can see costs before placing an order.
+          </p>
+        </section>
+
+        <section className="mt-12 max-w-[760px] sm:mt-16" aria-labelledby="about-support">
+          <h2 id="about-support" className="text-base font-semibold sm:text-lg">
+            Questions about a product or order?
+          </h2>
+          <p className="mt-4 text-slate-600">
+            If you need help choosing gloves or masks, checking an order, or understanding delivery,{" "}
+            <Link href="/contact" className={textLink}>
+              contact the OralNex team
+            </Link>
+            . For an existing order, have your order number ready when you call.
+          </p>
+        </section>
       </div>
     </main>
   );

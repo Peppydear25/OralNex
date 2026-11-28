@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { CategoryImage } from "../components/category-image";
+import { CategoryCards } from "../components/category-cards";
 import { SiteFooter } from "../components/site-footer";
 import { SiteHeader } from "../components/site-header";
 import { collectionDestination } from "../data/collection-destination";
 import { getPublicCatalog } from "../data/server-catalog";
-import { ShopCategories } from "./shop-categories";
 
 export const metadata: Metadata = {
   title: "Shop Dental & Medical Supplies",
@@ -31,7 +31,7 @@ export default async function ShopPage({
   const initialCategory = Array.isArray(requestedCategory)
     ? requestedCategory[0]
     : requestedCategory;
-  const catalog = initialCategory?.trim() ? await getPublicCatalog() : null;
+  const catalog = await getPublicCatalog();
   if (initialCategory?.trim()) {
     const collection = catalog?.collections.find(
       (item) =>
@@ -88,7 +88,29 @@ export default async function ShopPage({
       <SiteHeader />
       <main className="bg-white text-[#323232]">
         <h1 className="sr-only">Shop OralNex dental and medical supplies by category</h1>
-        <ShopCategories />
+        <section className="store-container py-10 sm:py-14" aria-labelledby="shop-category-title">
+          <div className="mb-7 sm:mb-9">
+            <p className="mb-2 text-xs font-bold uppercase tracking-[.18em] text-[#08788c]">
+              Explore OralNex
+            </p>
+            <h2
+              className="text-3xl font-semibold tracking-tight text-[#172d36] sm:text-4xl"
+              id="shop-category-title"
+            >
+              Shop by category
+            </h2>
+            <div className="mt-4 h-1 w-12 rounded-full bg-[#0a8d99]" aria-hidden="true" />
+          </div>
+          {catalog ? (
+            <CategoryCards
+              collections={catalog.collections}
+              products={catalog.products}
+              eagerImages={2}
+            />
+          ) : (
+            <p className="text-sm text-slate-600">Categories are temporarily unavailable.</p>
+          )}
+        </section>
       </main>
       <SiteFooter />
     </>

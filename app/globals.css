@@ -108,6 +108,24 @@
   background: linear-gradient(120deg, #f2fafb 0%, #e3f3f4 48%, #cce9ec 100%);
 }
 
+.home-benefits-track {
+  transform: translateX(calc(var(--benefit-index) * -100%));
+}
+
+@media (min-width: 768px) {
+  .home-benefits-track {
+    transform: none;
+  }
+}
+
+@media (max-width: 767px) and (prefers-reduced-motion: reduce) {
+  .home-benefits-track {
+    flex-direction: column;
+    gap: 1.5rem;
+    transform: none;
+  }
+}
+
 .home-category-card::before {
   content: "";
   position: absolute;
